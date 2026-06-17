@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1 Live Hub 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,600;1,700;1,900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="images_data.js"></script>
     <script src="tracks.js"></script>
@@ -11,30 +14,81 @@
         :root {
             color-scheme: dark;
             --f1-red: #e10600;
+            --f1-red-bright: #ff2a20;
+            --f1-red-deep: #9a0400;
             --panel: #11151d;
             --panel-soft: #171c26;
-            --line: rgba(255, 255, 255, .09);
+            --line: rgba(255, 255, 255, .08);
+            --ink: #f4f6fa;
+            --ink-dim: #9aa3b2;
+            --ink-faint: #5d6675;
+            --font-display: 'Titillium Web', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
         }
+
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
+            font-family: var(--font-display);
+            letter-spacing: .005em;
             background:
-                radial-gradient(circle at 18% -5%, rgba(225, 6, 0, .18), transparent 28rem),
-                linear-gradient(135deg, #08090d 0%, #11151d 48%, #090a0f 100%);
+                radial-gradient(circle at 16% -8%, rgba(225, 6, 0, .20), transparent 30rem),
+                radial-gradient(circle at 92% 0%, rgba(40, 90, 200, .07), transparent 26rem),
+                linear-gradient(160deg, #07080c 0%, #0f131b 46%, #08090e 100%);
+            background-attachment: fixed;
         }
 
+        body :is(.font-mono),
+        .font-mono { font-family: var(--font-mono); letter-spacing: -.01em; font-feature-settings: "tnum" 1; }
+
+        /* sharper broadcast headings */
+        h1, h2, h3, h4 { letter-spacing: -.01em; }
+
         .f1-text-red { color: var(--f1-red); }
-        .f1-bg-red { background: var(--f1-red); }
-        .surface { background: rgba(17, 21, 29, .82); border: 1px solid var(--line); }
-        .surface-strong { background: rgba(9, 10, 15, .9); border: 1px solid var(--line); }
-        .card-hover { transition: transform .18s ease, border-color .18s ease, background .18s ease; }
-        .card-hover:hover { transform: translateY(-2px); border-color: rgba(225, 6, 0, .42); }
+        .f1-bg-red {
+            background: linear-gradient(90deg, var(--f1-red-deep), var(--f1-red) 35%, var(--f1-red-bright) 60%, var(--f1-red));
+            background-size: 220% 100%;
+            animation: barShine 5.5s linear infinite;
+        }
+        @keyframes barShine { to { background-position: -220% 0; } }
+
+        .surface {
+            background: linear-gradient(180deg, rgba(23, 28, 38, .78), rgba(13, 16, 23, .82));
+            border: 1px solid var(--line);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .045), 0 12px 30px -18px rgba(0, 0, 0, .8);
+            backdrop-filter: blur(6px);
+        }
+        .surface-strong {
+            background: linear-gradient(180deg, rgba(11, 13, 19, .92), rgba(7, 8, 12, .94));
+            border: 1px solid var(--line);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+        }
+        .card-hover { transition: transform .2s cubic-bezier(.2,.7,.3,1), border-color .2s ease, box-shadow .2s ease; }
+        .card-hover:hover {
+            transform: translateY(-3px);
+            border-color: rgba(225, 6, 0, .45);
+            box-shadow: 0 18px 40px -20px rgba(225, 6, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .07);
+        }
 
         .team-card {
             background:
-                linear-gradient(180deg, rgba(0, 0, 0, .28) 0 43%, rgba(255, 255, 255, .06) 43% 100%),
+                linear-gradient(180deg, rgba(0, 0, 0, .32) 0 43%, rgba(255, 255, 255, .055) 43% 100%),
                 linear-gradient(135deg, var(--team-dark), var(--team-main) 52%, var(--team-bright));
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 14px 34px rgba(0, 0, 0, .22);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 20px 44px -22px rgba(0, 0, 0, .7);
         }
+
+        .team-card .shine {
+            content: "";
+            position: absolute;
+            top: 0; bottom: 0; left: -40%;
+            width: 32%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .16), transparent);
+            transform: skewX(-12deg);
+            transition: left .65s cubic-bezier(.2,.7,.3,1);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .team-card:hover .shine { left: 125%; }
 
         .team-card::before {
             content: "";
@@ -52,10 +106,13 @@
         }
 
         .tag-time-panel {
-            background: #030405;
+            background:
+                radial-gradient(circle at 0% 50%, rgba(225, 6, 0, .14), transparent 38%),
+                linear-gradient(180deg, #04060a, #020304);
             border-top: 1px solid rgba(255, 255, 255, .1);
             border-bottom: 1px solid rgba(255, 255, 255, .1);
         }
+        .tag-time-panel .tag-digit { font-variant-numeric: tabular-nums; }
 
         .tag-clock {
             background:
@@ -83,6 +140,13 @@
                 linear-gradient(90deg, color-mix(in srgb, var(--team-main) 22%, transparent), transparent 62%),
                 rgba(255, 255, 255, .015);
             box-shadow: inset 4px 0 0 var(--team-main);
+            transition: background .2s ease, transform .2s ease;
+        }
+        .constructor-row:hover {
+            background:
+                linear-gradient(90deg, color-mix(in srgb, var(--team-main) 34%, transparent), transparent 66%),
+                rgba(255, 255, 255, .03);
+            transform: translateX(2px);
         }
 
         .driver-row-top10 {
@@ -91,6 +155,35 @@
                 rgba(255, 255, 255, .01);
             box-shadow: inset 3px 0 0 color-mix(in srgb, var(--team-main) 55%, transparent);
         }
+
+        .driver-row {
+            transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+        .driver-row:hover {
+            background:
+                linear-gradient(90deg, color-mix(in srgb, var(--team-main) 20%, transparent), transparent 70%),
+                rgba(255, 255, 255, .035) !important;
+            transform: translateX(3px);
+        }
+
+        /* podium accents */
+        .pos-1 .pos-num { color: #ffd24a; text-shadow: 0 0 14px rgba(255, 210, 74, .45); }
+        .pos-2 .pos-num { color: #d6dde8; }
+        .pos-3 .pos-num { color: #e0935a; }
+        .pos-1 { box-shadow: inset 3px 0 0 #ffd24a, 0 0 24px -12px rgba(255, 210, 74, .5) !important; }
+
+        /* staggered row entrance */
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .row-anim { animation: rowIn .42s cubic-bezier(.2,.7,.3,1) backwards; }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 6, 0, .55); }
+            70% { box-shadow: 0 0 0 7px rgba(225, 6, 0, 0); }
+        }
+        .live-dot { animation: livePulse 1.8s ease-out infinite; }
 
         .trend-pill {
             min-width: 2.1rem;
@@ -213,12 +306,12 @@
                 <div class="space-y-2">
                     <div class="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-widest">
                         <span class="inline-flex items-center gap-2 rounded-[6px] border border-red-500/35 bg-red-500/10 px-2.5 py-1 text-red-300">
-                            <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                            <span class="live-dot h-2 w-2 rounded-full bg-red-500"></span>
                             Live данни
                         </span>
                         <span id="data-source-label" class="text-gray-500">Зареждане...</span>
                     </div>
-                    <h2 id="next-race-title" class="text-xl sm:text-2xl font-black text-white">Следващо състезание</h2>
+                    <h2 id="next-race-title" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Следващо състезание</h2>
                     <p id="next-race-meta" class="text-sm text-gray-400">Проверявам календара...</p>
                 </div>
 
@@ -648,12 +741,13 @@
         }
 
         function renderStandings() {
-            document.getElementById("drivers-table").innerHTML = state.drivers.map(driver => {
+            document.getElementById("drivers-table").innerHTML = state.drivers.map((driver, i) => {
                 const theme = themeFor(driver.constructorId);
                 const topTenClass = driver.pos <= 10 ? "driver-row-top10" : "";
+                const podiumClass = driver.pos <= 3 ? `pos-${driver.pos}` : "";
                 return `
-                    <tr class="${topTenClass} hover:bg-white/[0.035] transition" style="--team-main:${theme.color};">
-                        <td class="py-3 px-4 text-center font-mono font-black ${driver.pos <= 3 ? "text-red-400" : "text-gray-500"}">${driver.pos}</td>
+                    <tr class="driver-row row-anim ${topTenClass} ${podiumClass}" style="--team-main:${theme.color}; animation-delay:${Math.min(i, 14) * 35}ms;">
+                        <td class="py-3 px-4 text-center"><span class="pos-num font-mono font-black text-base ${driver.pos <= 3 ? "" : "text-gray-500"}">${driver.pos}</span></td>
                         <td class="py-3 px-2 text-center">${trendHtml(driver.trend)}</td>
                         <td class="py-3 px-4 font-bold text-gray-100">
                             <div class="flex items-center gap-2.5">
@@ -669,16 +763,16 @@
                             </span>
                         </td>
                         <td class="py-3 px-4 text-center font-mono text-gray-400">${driver.wins}</td>
-                        <td class="py-3 px-4 text-right font-black text-red-400 font-mono">${driver.points}</td>
+                        <td class="py-3 px-4 text-right font-black text-red-400 font-mono"><span class="count-up" data-target="${driver.points}">${driver.points}</span></td>
                     </tr>
                 `;
             }).join("");
 
-            document.getElementById("constructors-table").innerHTML = state.constructors.map(team => {
+            document.getElementById("constructors-table").innerHTML = state.constructors.map((team, i) => {
                 const theme = themeFor(team.constructorId);
                 const logo = typeof teamLogos !== "undefined" ? teamLogos[theme.slug] : null;
                 return `
-                    <tr class="constructor-row hover:bg-white/[0.045] transition" style="--team-main:${theme.color};">
+                    <tr class="constructor-row row-anim" style="--team-main:${theme.color}; animation-delay:${Math.min(i, 14) * 40}ms;">
                         <td class="py-3 px-4 text-center font-mono font-black text-white">${team.pos}</td>
                         <td class="py-3 px-4 font-bold text-gray-100">
                             <div class="flex items-center gap-2">
@@ -686,10 +780,29 @@
                                 <span class="truncate max-w-[170px]">${team.name}</span>
                             </div>
                         </td>
-                        <td class="py-3 px-4 text-right font-black font-mono" style="color:${theme.bright || theme.color};">${team.points}</td>
+                        <td class="py-3 px-4 text-right font-black font-mono" style="color:${theme.bright || theme.color};"><span class="count-up" data-target="${team.points}">${team.points}</span></td>
                     </tr>
                 `;
             }).join("");
+
+            animateCounters();
+        }
+
+        function animateCounters() {
+            document.querySelectorAll(".count-up").forEach(el => {
+                const target = Number(el.dataset.target) || 0;
+                if (target <= 0) { el.textContent = target; return; }
+                const dur = 650;
+                const start = performance.now();
+                function step(now) {
+                    const p = Math.min((now - start) / dur, 1);
+                    const eased = 1 - Math.pow(1 - p, 3);
+                    el.textContent = Math.round(target * eased);
+                    if (p < 1) requestAnimationFrame(step);
+                    else el.textContent = target;
+                }
+                requestAnimationFrame(step);
+            });
         }
 
         function renderCalendar() {
@@ -822,6 +935,7 @@
                 return `
                     <article class="team-card card-hover relative rounded-[8px] overflow-hidden min-h-[255px] p-5 flex flex-col justify-between"
                         style="--team-main:${team.theme.color}; --team-dark:${team.theme.dark}; --team-bright:${team.theme.bright};">
+                        <span class="shine"></span>
                         <div class="relative z-10 flex items-start justify-between gap-4">
                             <div class="min-w-0">
                                 <h4 class="text-2xl sm:text-3xl font-black text-white truncate drop-shadow-sm">${team.name}</h4>
