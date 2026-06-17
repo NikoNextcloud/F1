@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,300;0,400;0,600;0,700;0,900;1,600;1,700;1,900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="images_data.js"></script>
     <script src="tracks.js"></script>
     <style>
@@ -266,6 +267,21 @@
             background: var(--f1-red);
         }
 
+        .live-tv-panel {
+            min-height: 56vh;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(225, 6, 0, .18), transparent 24rem),
+                linear-gradient(180deg, rgba(11, 13, 19, .94), rgba(5, 7, 11, .98));
+        }
+
+        .live-video {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            max-height: 68vh;
+            background: #020307;
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
         .skeleton {
             background: linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.12), rgba(255,255,255,.05));
             background-size: 200% 100%;
@@ -291,10 +307,11 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-1.5 surface rounded-[8px] p-1 w-full lg:w-auto">
+            <div class="grid grid-cols-4 gap-1.5 surface rounded-[8px] p-1 w-full lg:w-auto">
                 <button onclick="switchTab('standings')" id="btn-standings" class="tab-btn active px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Класиране</button>
                 <button onclick="switchTab('calendar')" id="btn-calendar" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Календар</button>
                 <button onclick="switchTab('teams')" id="btn-teams" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Отбори</button>
+                <button onclick="switchTab('live')" id="btn-live" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">На живо</button>
             </div>
         </div>
     </nav>
@@ -412,6 +429,23 @@
                 <p class="text-xs text-gray-500">Съставите се събират от live класирането и се комбинират с наличните изображения в проекта.</p>
             </div>
             <div id="teams-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
+        </section>
+
+        <section id="tab-live" class="tab-content hidden space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-black tracking-wide text-white">На живо</h3>
+                    <p class="text-xs text-gray-500">HLS плейър</p>
+                </div>
+            </div>
+            <div class="surface live-tv-panel rounded-[8px] overflow-hidden p-4 sm:p-5">
+                <video id="live-hls-player" class="live-video rounded-[8px]" controls playsinline preload="metadata" poster="f1-logo.png"></video>
+                <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <p id="live-player-status" class="text-sm font-bold text-amber-300">Няма зададен разрешен HLS поток.</p>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -976,12 +1010,48 @@
             document.getElementById(`btn-${tabId}`).classList.add("active");
         }
 
+        const AUTHORIZED_HLS_URL = "http://bde.online24.pm/play/6832/16419D145D0E706/video.m3u8";
+
+        function setupLivePlayer() {
+            const video = document.getElementById("live-hls-player");
+            const status = document.getElementById("live-player-status");
+            const streamUrl = AUTHORIZED_HLS_URL.trim();
+
+            if (!video || !status) return;
+
+            if (!streamUrl) {
+                status.textContent = "Няма зададен разрешен HLS поток.";
+                status.className = "text-sm font-bold text-amber-300";
+                return;
+            }
+
+            if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                video.src = streamUrl;
+                status.textContent = "Плейърът е готов.";
+                status.className = "text-sm font-bold text-emerald-300";
+                return;
+            }
+
+            if (typeof Hls !== "undefined" && Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                status.textContent = "Плейърът е готов.";
+                status.className = "text-sm font-bold text-emerald-300";
+                return;
+            }
+
+            status.textContent = "Браузърът не поддържа HLS възпроизвеждане.";
+            status.className = "text-sm font-bold text-red-300";
+        }
+
         window.addEventListener("load", () => {
             showLoadingRows();
             refreshLiveData();
             setInterval(refreshLiveData, REFRESH_MS);
             updateTagTime();
             setInterval(updateTagTime, 30000);
+            setupLivePlayer();
         });
     </script>
 </body>
