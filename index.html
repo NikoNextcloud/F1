@@ -3,294 +3,872 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 API Live Hub 2026</title>
-    <!-- Tailwind CSS за модерен тъмен дизайн -->
+    <title>F1 Live Hub 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="images_data.js"></script>
+    <script src="tracks.js"></script>
     <style>
-        .f1-bg-red { background-color: #E10600; }
-        .f1-text-red { color: #E10600; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
-        ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #E10600; }
+        :root {
+            color-scheme: dark;
+            --f1-red: #e10600;
+            --panel: #11151d;
+            --panel-soft: #171c26;
+            --line: rgba(255, 255, 255, .09);
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 18% -5%, rgba(225, 6, 0, .18), transparent 28rem),
+                linear-gradient(135deg, #08090d 0%, #11151d 48%, #090a0f 100%);
+        }
+
+        .f1-text-red { color: var(--f1-red); }
+        .f1-bg-red { background: var(--f1-red); }
+        .surface { background: rgba(17, 21, 29, .82); border: 1px solid var(--line); }
+        .surface-strong { background: rgba(9, 10, 15, .9); border: 1px solid var(--line); }
+        .card-hover { transition: transform .18s ease, border-color .18s ease, background .18s ease; }
+        .card-hover:hover { transform: translateY(-2px); border-color: rgba(225, 6, 0, .42); }
+
+        .team-card {
+            background:
+                linear-gradient(180deg, rgba(0, 0, 0, .28) 0 43%, rgba(255, 255, 255, .06) 43% 100%),
+                linear-gradient(135deg, var(--team-dark), var(--team-main) 52%, var(--team-bright));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 14px 34px rgba(0, 0, 0, .22);
+        }
+
+        .team-card::before {
+            content: "";
+            position: absolute;
+            inset: 42% 0 0;
+            opacity: .22;
+            background-image: radial-gradient(currentColor .75px, transparent .75px);
+            background-size: 5px 5px;
+            color: #fff;
+            pointer-events: none;
+        }
+
+        .team-car {
+            filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .28));
+        }
+
+        .tag-time-panel {
+            background: #030405;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            border-bottom: 1px solid rgba(255, 255, 255, .1);
+        }
+
+        .tag-clock {
+            background:
+                radial-gradient(circle at 50% 45%, #fff 0 36%, #d7d7d7 37% 43%, #a10e18 44% 54%, #260409 55% 100%);
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .22), 0 0 16px rgba(225, 6, 0, .35);
+        }
+
+        .tag-clock::before,
+        .tag-clock::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 2px;
+            transform-origin: bottom center;
+            background: #151515;
+            border-radius: 99px;
+        }
+
+        .tag-clock::before { height: 14px; transform: translate(-50%, -100%) rotate(20deg); }
+        .tag-clock::after { height: 18px; transform: translate(-50%, -100%) rotate(92deg); }
+
+        .constructor-row {
+            background:
+                linear-gradient(90deg, color-mix(in srgb, var(--team-main) 22%, transparent), transparent 62%),
+                rgba(255, 255, 255, .015);
+            box-shadow: inset 4px 0 0 var(--team-main);
+        }
+
+        .driver-row-top10 {
+            background:
+                linear-gradient(90deg, color-mix(in srgb, var(--team-main) 10%, transparent), transparent 66%),
+                rgba(255, 255, 255, .01);
+            box-shadow: inset 3px 0 0 color-mix(in srgb, var(--team-main) 55%, transparent);
+        }
+
+        .trend-pill {
+            min-width: 2.1rem;
+            height: 1.35rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .12rem;
+            font-size: .68rem;
+            font-weight: 900;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+
+        .flag-badge {
+            background: rgba(0, 0, 0, .35);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+        }
+
+        .next-race-card {
+            position: relative;
+            border-color: rgba(225, 6, 0, .42) !important;
+            box-shadow: 0 0 0 1px rgba(225, 6, 0, .12), 0 18px 34px rgba(225, 6, 0, .06);
+        }
+
+        .next-race-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            padding: 1px;
+            background:
+                linear-gradient(135deg, rgba(225, 6, 0, .95), rgba(225, 6, 0, .18) 22%, rgba(30, 33, 43, .18) 50%, rgba(225, 6, 0, .35) 78%, rgba(9, 10, 15, .88));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .next-race-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 0 0, rgba(225, 6, 0, .24), transparent 34%),
+                radial-gradient(circle at 100% 100%, rgba(225, 6, 0, .18), transparent 32%);
+            pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+            main { padding-left: .75rem; padding-right: .75rem; }
+            .team-card { min-height: 230px; padding: 1rem; }
+            .team-car { width: 138%; margin-left: -2.75rem; }
+            .tag-time-panel { overflow-x: auto; }
+        }
+
+        .tab-btn {
+            position: relative;
+            min-height: 2.75rem;
+            border: 1px solid transparent;
+            color: #a3aab8;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            border-color: rgba(225, 6, 0, .65);
+            background: linear-gradient(180deg, rgba(225, 6, 0, .24), rgba(225, 6, 0, .08));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 10px 28px rgba(225, 6, 0, .11);
+        }
+
+        .tab-btn.active::after {
+            content: "";
+            position: absolute;
+            left: .75rem;
+            right: .75rem;
+            bottom: .35rem;
+            height: 2px;
+            border-radius: 99px;
+            background: var(--f1-red);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.12), rgba(255,255,255,.05));
+            background-size: 200% 100%;
+            animation: shimmer 1.15s infinite;
+        }
+
+        @keyframes shimmer { to { background-position: -200% 0; } }
+
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #090a0f; }
+        ::-webkit-scrollbar-thumb { background: #2b3240; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--f1-red); }
     </style>
 </head>
-<body class="bg-[#0b0f17] text-gray-100 font-sans min-h-screen antialiased">
-
-    <!-- НАВИГАЦИЯ -->
-    <nav class="bg-black/90 border-b border-gray-800 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <span class="f1-bg-red text-white px-2.5 py-1 rounded text-sm font-black tracking-tighter shadow-md shadow-red-600/20">F1</span>
-                <h1 class="text-xl font-black tracking-wider text-white">LIVE API HUB <span class="text-gray-500 font-normal text-sm">2026</span></h1>
+<body class="text-gray-100 font-sans min-h-screen antialiased">
+    <nav class="sticky top-0 z-50 border-b border-white/10 bg-black/82 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-center gap-4 min-w-0">
+                <img src="f1-logo.png" alt="Formula 1" class="h-9 w-auto object-contain shrink-0">
+                <div class="min-w-0">
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wide text-white truncate">F1 Live Hub</h1>
+                    <p class="text-xs text-gray-400">Класирания, календар, писти и отбори с автоматично обновяване</p>
+                </div>
             </div>
-            <!-- Меню -->
-            <div class="flex flex-wrap justify-center gap-1.5 bg-[#111622] p-1 rounded-xl border border-gray-800 text-xs sm:text-sm w-full md:w-auto">
-                <button onclick="switchTab('standings')" id="btn-standings" class="tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-lg font-bold transition-all bg-red-600 text-white shadow-lg shadow-red-600/10">🏆 Live Класиране</button>
-                <button onclick="switchTab('calendar')" id="btn-calendar" class="tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-lg font-bold text-gray-400 hover:text-white transition-all">📅 Календар</button>
-                <button onclick="switchTab('teams')" id="btn-teams" class="tab-btn flex-1 sm:flex-none px-4 py-2.5 rounded-lg font-bold text-gray-400 hover:text-white transition-all">🏎️ Отбори & Пилоти</button>
+
+            <div class="grid grid-cols-3 gap-1.5 surface rounded-[8px] p-1 w-full lg:w-auto">
+                <button onclick="switchTab('standings')" id="btn-standings" class="tab-btn active px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Класиране</button>
+                <button onclick="switchTab('calendar')" id="btn-calendar" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Календар</button>
+                <button onclick="switchTab('teams')" id="btn-teams" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Отбори</button>
             </div>
         </div>
     </nav>
 
-    <!-- ОСНОВНО СЪДЪРЖАНИЕ -->
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-8">
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-7">
+        <section class="surface rounded-[8px] p-5 overflow-hidden relative">
+            <div class="absolute inset-x-0 top-0 h-1 f1-bg-red"></div>
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-widest">
+                        <span class="inline-flex items-center gap-2 rounded-[6px] border border-red-500/35 bg-red-500/10 px-2.5 py-1 text-red-300">
+                            <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                            Live данни
+                        </span>
+                        <span id="data-source-label" class="text-gray-500">Зареждане...</span>
+                    </div>
+                    <h2 id="next-race-title" class="text-xl sm:text-2xl font-black text-white">Следващо състезание</h2>
+                    <p id="next-race-meta" class="text-sm text-gray-400">Проверявам календара...</p>
+                </div>
 
-        <!-- МОДУЛ: LIVE STATUS -->
-        <section class="bg-gradient-to-r from-black via-[#0f1422] to-black rounded-2xl border border-gray-800 p-5 shadow-xl relative overflow-hidden">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div class="flex items-start gap-3.5">
-                    <div class="relative flex h-3 w-3 mt-1.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+                    <div class="surface-strong rounded-[8px] p-3">
+                        <span class="block text-[10px] text-gray-500 uppercase font-black">Сезон</span>
+                        <span id="season-label" class="font-black text-white">2026</span>
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-black uppercase tracking-widest bg-emerald-600/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">ДАННИТЕ СА СВЪРЗАНИ С API</span>
-                            <span class="text-xs text-gray-400 font-mono" id="current-time-display"></span>
-                        </div>
-                        <h2 class="text-lg font-black text-white mt-1">Автоматично синхронизиране на сезон 2026</h2>
-                        <p class="text-xs text-gray-400" id="live-status-text">Зареждане на текущи данни на живо...</p>
+                    <div class="surface-strong rounded-[8px] p-3">
+                        <span class="block text-[10px] text-gray-500 uppercase font-black">Обновено</span>
+                        <span id="updated-label" class="font-black text-white">--:--</span>
                     </div>
+                    <div class="surface-strong rounded-[8px] p-3 col-span-2 sm:col-span-1">
+                        <span class="block text-[10px] text-gray-500 uppercase font-black">Статус</span>
+                        <span id="connection-label" class="font-black text-amber-300">Свързване</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tag-time-panel mt-5 -mx-5 -mb-5 px-5 py-3">
+                <div class="flex items-center justify-center gap-4 sm:gap-5 min-w-[300px]">
+                    <img src="tag-heuer.svg" alt="TAG Heuer" class="h-8 w-auto object-contain">
+                    <div class="grid grid-cols-[auto_auto] gap-x-5 gap-y-0.5 text-sm leading-tight">
+                        <span class="text-white font-black uppercase">• MY TIME</span>
+                        <span id="my-time-label" class="text-white font-black font-mono">--:--</span>
+                        <span class="text-gray-300 font-black uppercase">TRACK TIME</span>
+                        <span id="track-time-label" class="text-gray-300 font-black font-mono">--:--</span>
+                    </div>
+                    <div class="tag-clock relative h-12 w-12 rounded-full shrink-0"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ТАБ: КЛАСИРАНЕ -->
-        <section id="tab-standings" class="tab-content space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                
-                <!-- Таблица Пилоти -->
+        <section id="tab-standings" class="tab-content space-y-7">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div class="lg:col-span-2 space-y-4">
-                    <h3 class="text-lg font-black tracking-wide border-l-4 border-red-600 pl-3">КЛАСИРАНЕ НА ПИЛОТИТЕ (API LIVE)</h3>
-                    <div class="overflow-x-auto bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-sm relative min-h-[200px]">
-                        <div id="drivers-loading" class="absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-gray-400">Зареждане на данни...</div>
-                        <table class="w-full text-left border-collapse min-w-[500px]">
+                    <div class="flex items-end justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-black tracking-wide text-white">Класиране на пилотите</h3>
+                            <p class="text-xs text-gray-500">Данните идват от Jolpica/Ergast API и се презареждат автоматично.</p>
+                        </div>
+                        <button onclick="refreshLiveData(true)" class="rounded-[7px] border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-white hover:border-red-500/50 hover:bg-red-500/10 transition">Обнови</button>
+                    </div>
+                    <div class="overflow-x-auto surface rounded-[8px]">
+                        <table class="w-full text-left border-collapse min-w-[820px]">
                             <thead>
-                                <tr class="border-b border-gray-800 text-gray-400 text-[11px] font-bold uppercase tracking-wider bg-black/60">
+                                <tr class="border-b border-white/10 text-gray-400 text-[11px] font-black uppercase tracking-wider bg-black/35">
                                     <th class="py-3.5 px-4 text-center w-14">Поз.</th>
+                                    <th class="py-3.5 px-2 text-center w-16">Движ.</th>
                                     <th class="py-3.5 px-4">Пилот</th>
-                                    <th class="py-3.5 px-4">Конструктор</th>
-                                    <th class="py-3.5 px-4 text-center w-24">Победи</th>
-                                    <th class="py-3.5 px-4 text-right bg-neutral-950/60 font-bold text-white w-24">Точки</th>
+                                    <th class="py-3.5 px-4">Националност</th>
+                                    <th class="py-3.5 px-4">Отбор</th>
+                                    <th class="py-3.5 px-4 text-center w-20">Победи</th>
+                                    <th class="py-3.5 px-4 text-right w-24">Точки</th>
                                 </tr>
                             </thead>
-                            <tbody id="drivers-table" class="divide-y divide-gray-900/40 text-sm"></tbody>
+                            <tbody id="drivers-table" class="divide-y divide-white/[0.06] text-sm"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Таблица Конструктори -->
                 <div class="space-y-4">
-                    <h3 class="text-lg font-black tracking-wide border-l-4 border-red-600 pl-3">КЛАСИРАНЕ НА ОТБОРИТЕ</h3>
-                    <div class="overflow-x-auto bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-sm relative min-h-[200px]">
-                        <div id="constructors-loading" class="absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-gray-400">Зареждане на данни...</div>
+                    <h3 class="text-lg font-black tracking-wide text-white">Конструктори</h3>
+                    <div class="overflow-x-auto surface rounded-[8px]">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="border-b border-gray-800 text-gray-400 text-[11px] font-bold uppercase tracking-wider bg-black/60">
+                                <tr class="border-b border-white/10 text-gray-400 text-[11px] font-black uppercase tracking-wider bg-black/35">
                                     <th class="py-3.5 px-4 text-center w-14">Поз.</th>
                                     <th class="py-3.5 px-4">Отбор</th>
-                                    <th class="py-3.5 px-4 text-right bg-neutral-950/60 font-bold text-white w-24">Точки</th>
+                                    <th class="py-3.5 px-4 text-right w-24">Точки</th>
                                 </tr>
                             </thead>
-                            <tbody id="constructors-table" class="divide-y divide-gray-900/40 text-sm"></tbody>
+                            <tbody id="constructors-table" class="divide-y divide-white/[0.06] text-sm"></tbody>
                         </table>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <!-- ТАБ: КАЛЕНДАР -->
-        <section id="tab-calendar" class="tab-content hidden space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4">
-                <h3 class="text-lg font-black tracking-wide border-l-4 border-red-600 pl-3">Официален календар на Гран При 2026</h3>
-                <div class="flex gap-2 text-[10px] font-mono">
-                    <span class="px-2.5 py-1 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/60">🏁 МИНАЛО</span>
-                    <span class="px-2.5 py-1 rounded bg-blue-950/40 text-blue-400 border border-blue-900/40">📅 ПРЕДСТОИ</span>
+        <section id="tab-calendar" class="tab-content hidden space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-black tracking-wide text-white">Календар на сезона</h3>
+                    <p class="text-xs text-gray-500">Минали, текущи и предстоящи уикенди според реалната дата.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 text-[10px] font-mono">
+                    <span class="px-2.5 py-1 rounded-[6px] bg-emerald-950/60 text-emerald-300 border border-emerald-800/60">МИНАЛО</span>
+                    <span class="px-2.5 py-1 rounded-[6px] bg-amber-950/60 text-amber-300 border border-amber-800/60">ТАЗИ СЕДМИЦА</span>
+                    <span class="px-2.5 py-1 rounded-[6px] bg-blue-950/60 text-blue-300 border border-blue-800/60">ПРЕДСТОИ</span>
                 </div>
             </div>
-            <div id="calendar-loading" class="text-center text-gray-400 py-8">Зареждане на състезанията от API...</div>
-            <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+            <div id="calendar-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
         </section>
 
-        <!-- ТАБ: ОТБОРИ -->
-        <section id="tab-teams" class="tab-content hidden space-y-6">
-            <h3 class="text-lg font-black tracking-wide border-l-4 border-red-600 pl-3">Конструктори и активни пилоти</h3>
-            <div id="teams-loading" class="text-center text-gray-400 py-8">Зареждане на отборите...</div>
-            <div id="teams-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        <section id="tab-teams" class="tab-content hidden space-y-5">
+            <div>
+                <h3 class="text-lg font-black tracking-wide text-white">Отбори и пилоти</h3>
+                <p class="text-xs text-gray-500">Съставите се събират от live класирането и се комбинират с наличните изображения в проекта.</p>
+            </div>
+            <div id="teams-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
         </section>
-
     </main>
 
-    <!-- СЕКЦИЯ ЛОГИКА (API FETCH) -->
     <script>
-        const API_BASE = "https://api.jolpi.ca/ergast/f1/2026";
+        const API_BASE = "https://api.jolpi.ca/ergast/f1/current";
+        const REFRESH_MS = 5 * 60 * 1000;
 
-        const teamColors = {
-            "mercedes": "#27CCB5", "ferrari": "#E10600", "mclaren": "#FF8700",
-            "red_bull": "#3671C6", "aston_martin": "#229971", "alpine": "#0090FF",
-            "williams": "#00A0DE", "haas": "#B6BABD", "sauber": "#900000",
-            "rb": "#6692FF", "audi": "#F50057", "cadillac": "#14223c"
+        const constructorTheme = {
+            mercedes: { slug: "mercedes", color: "#27ccb5", dark: "#006f64", bright: "#35f0d5", bg: "Mercedes-AMG" },
+            ferrari: { slug: "ferrari", color: "#e10600", dark: "#8d0018", bright: "#ff1535", bg: "Ferrari" },
+            mclaren: { slug: "mclaren", color: "#ff8700", dark: "#9a5200", bright: "#ff9f1c", bg: "McLaren" },
+            red_bull: { slug: "red-bull", color: "#3671c6", dark: "#17305f", bright: "#3d8af7", bg: "Red Bull" },
+            redbull: { slug: "red-bull", color: "#3671c6", dark: "#17305f", bright: "#3d8af7", bg: "Red Bull" },
+            aston_martin: { slug: "aston-martin", color: "#229971", dark: "#0b4d43", bright: "#28c690", bg: "Aston Martin" },
+            cadillac: { slug: "cadillac", color: "#273b66", dark: "#111729", bright: "#516aa3", bg: "Cadillac" },
+            audi: { slug: "audi", color: "#f50057", dark: "#1d1d24", bright: "#ff3379", bg: "Audi" },
+            alpine: { slug: "alpine", color: "#0090ff", dark: "#073b82", bright: "#ff66b3", bg: "Alpine" },
+            rb: { slug: "racing-bulls", color: "#6692ff", dark: "#183d8f", bright: "#8aaaff", bg: "RB" },
+            racing_bulls: { slug: "racing-bulls", color: "#6692ff", dark: "#183d8f", bright: "#8aaaff", bg: "RB" },
+            williams: { slug: "williams", color: "#00a0de", dark: "#013d78", bright: "#39c8ff", bg: "Williams" },
+            haas: { slug: "haas", color: "#b6babd", dark: "#3d4249", bright: "#f2f4f6", bg: "Haas" }
         };
 
-        function getTeamColor(teamId) {
-            return teamColors[teamId] || teamColors[teamId.replace('-', '_')] || "#4B5563";
+        const circuitSlugMap = {
+            albert_park: "australia",
+            shanghai: "china",
+            suzuka: "japan",
+            bahrain: "bahrain",
+            monaco: "monaco",
+            villeneuve: "canada",
+            catalunya: "spain",
+            red_bull_ring: "austria",
+            silverstone: "uk",
+            spa: "belgium",
+            monza: "italy",
+            yas_marina: "abudhabi"
+        };
+
+        const circuitTimeZones = {
+            albert_park: "Australia/Melbourne",
+            shanghai: "Asia/Shanghai",
+            suzuka: "Asia/Tokyo",
+            bahrain: "Asia/Bahrain",
+            miami: "America/New_York",
+            villeneuve: "America/Toronto",
+            monaco: "Europe/Monaco",
+            catalunya: "Europe/Madrid",
+            red_bull_ring: "Europe/Vienna",
+            silverstone: "Europe/London",
+            spa: "Europe/Brussels",
+            hungaroring: "Europe/Budapest",
+            zandvoort: "Europe/Amsterdam",
+            monza: "Europe/Rome",
+            madring: "Europe/Madrid",
+            baku: "Asia/Baku",
+            marina_bay: "Asia/Singapore",
+            americas: "America/Chicago",
+            rodriguez: "America/Mexico_City",
+            interlagos: "America/Sao_Paulo",
+            vegas: "America/Los_Angeles",
+            losail: "Asia/Qatar",
+            yas_marina: "Asia/Dubai"
+        };
+
+        const localDriverPhotos = {
+            "andrea-kimi-antonelli": "andrea-kimi-antonelli.png",
+            "kimi-antonelli": "andrea-kimi-antonelli.png"
+        };
+
+        const countryFlags = {
+            Australia: "au",
+            Austria: "at",
+            Azerbaijan: "az",
+            Bahrain: "bh",
+            Belgium: "be",
+            Brazil: "br",
+            Canada: "ca",
+            China: "cn",
+            Hungary: "hu",
+            Italy: "it",
+            Japan: "jp",
+            Mexico: "mx",
+            Monaco: "mc",
+            Netherlands: "nl",
+            Qatar: "qa",
+            Singapore: "sg",
+            Spain: "es",
+            UAE: "ae",
+            UK: "gb",
+            USA: "us"
+        };
+
+        const fallbackDrivers = [
+            { pos: 1, name: "Kimi Antonelli", nationality: "Italian", team: "Mercedes", constructorId: "mercedes", wins: 3, points: 142 },
+            { pos: 2, name: "Lewis Hamilton", nationality: "British", team: "Ferrari", constructorId: "ferrari", wins: 2, points: 125 },
+            { pos: 3, name: "Max Verstappen", nationality: "Dutch", team: "Red Bull", constructorId: "red_bull", wins: 2, points: 118 },
+            { pos: 4, name: "Lando Norris", nationality: "British", team: "McLaren", constructorId: "mclaren", wins: 1, points: 110 },
+            { pos: 5, name: "Charles Leclerc", nationality: "Monegasque", team: "Ferrari", constructorId: "ferrari", wins: 1, points: 98 }
+        ];
+
+        const fallbackConstructors = [
+            { pos: 1, name: "Mercedes", constructorId: "mercedes", wins: 3, points: 135 },
+            { pos: 2, name: "Ferrari", constructorId: "ferrari", wins: 0, points: 90 },
+            { pos: 3, name: "McLaren", constructorId: "mclaren", wins: 0, points: 46 }
+        ];
+
+        let state = {
+            drivers: fallbackDrivers,
+            constructors: fallbackConstructors,
+            races: [],
+            winners: {},
+            season: "2026",
+            isFallback: true
+        };
+
+        function normalizeConstructorId(id) {
+            return String(id || "").replaceAll("-", "_").toLowerCase();
         }
 
-        async function loadStandings() {
+        function themeFor(id) {
+            return constructorTheme[normalizeConstructorId(id)] || { slug: normalizeConstructorId(id), color: "#8892a6", dark: "#29313f", bright: "#aeb7c7", bg: "F1" };
+        }
+
+        function driverName(driver) {
+            return `${driver.givenName || ""} ${driver.familyName || ""}`.trim();
+        }
+
+        function driverAvatarHtml(name, sizeClass) {
+            const slug = name
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z\s-]/g, "")
+                .trim()
+                .replace(/\s+/g, "-");
+            const localPhoto = localDriverPhotos[slug];
+            const photo = localPhoto || (typeof driverPhotos !== "undefined" ? driverPhotos[slug] : null);
+            if (photo) return `<img src="${photo}" alt="${name}" class="${sizeClass} ${localPhoto ? "object-contain" : "object-cover object-top"} rounded-[6px] bg-[#0d111a]">`;
+            const initials = name.split(" ").map(part => part[0]).join("").slice(0, 2).toUpperCase();
+            return `<div class="${sizeClass} rounded-[6px] bg-white/8 flex items-center justify-center text-[10px] font-black text-gray-300">${initials}</div>`;
+        }
+
+        function nationalityLabel(nationality) {
+            return nationality || "—";
+        }
+
+        function formatRaceName(name) {
+            return String(name || "").replace("Grand Prix", "Гран При");
+        }
+
+        function raceDateTime(race) {
+            const time = race.time || "00:00:00Z";
+            return new Date(`${race.date}T${time}`);
+        }
+
+        function generatedTrackLayout(seedText) {
+            let seed = 0;
+            for (const char of String(seedText || "f1")) seed = (seed * 31 + char.charCodeAt(0)) % 9973;
+
+            const cx = 100;
+            const cy = 66;
+            const points = Array.from({ length: 9 }, (_, index) => {
+                const angle = ((Math.PI * 2) / 9) * index + (seed % 19) / 25;
+                const radiusX = 48 + ((seed + index * 17) % 27);
+                const radiusY = 28 + ((seed + index * 23) % 18);
+                const wobble = ((seed + index * 13) % 15) - 7;
+                return [
+                    Math.round(cx + Math.cos(angle) * (radiusX + wobble)),
+                    Math.round(cy + Math.sin(angle) * (radiusY - wobble / 2))
+                ];
+            });
+            const path = points.map((point, index) => `${index === 0 ? "M" : "L"}${point[0]},${point[1]}`).join(" ") + " Z";
+            const start = points[0];
+
+            return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                <path d="${path}" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="${start[0]}" cy="${start[1]}" r="3.2" fill="#E10600"/>
+                <line x1="${start[0] - 7}" y1="${start[1]}" x2="${start[0] + 7}" y2="${start[1]}" stroke="#E10600" stroke-width="2"/>
+            </svg>`;
+        }
+
+        function trackLayoutHtml(trackSlug, circuitId) {
+            if (typeof trackLayouts !== "undefined" && trackLayouts[trackSlug]) return trackLayouts[trackSlug];
+            return generatedTrackLayout(circuitId || trackSlug);
+        }
+
+        function raceWeekendStart(race) {
+            const sessionDates = ["FirstPractice", "SprintQualifying", "Sprint", "Qualifying", "SecondPractice", "ThirdPractice"]
+                .map(key => race[key]?.date)
+                .filter(Boolean)
+                .sort();
+            return new Date(`${sessionDates[0] || race.date}T00:00:00`);
+        }
+
+        function formatDateRange(race) {
+            const start = raceWeekendStart(race);
+            const end = new Date(`${race.date}T00:00:00`);
+            const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+            if (sameMonth) {
+                return `${start.toLocaleDateString("bg-BG", { day: "numeric" })} - ${end.toLocaleDateString("bg-BG", { day: "numeric", month: "long" })}`;
+            }
+            return `${start.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })} - ${end.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })}`;
+        }
+
+        function isRaceWeek(race) {
+            const now = new Date();
+            const start = new Date(raceDateTime(race));
+            start.setDate(start.getDate() - 3);
+            const end = new Date(raceDateTime(race));
+            end.setDate(end.getDate() + 1);
+            return now >= start && now <= end;
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url, { cache: "no-store" });
+            if (!response.ok) throw new Error(`API error ${response.status}`);
+            return response.json();
+        }
+
+        async function fetchPreviousDriverPositions(season, currentRound) {
+            const previousRound = Number(currentRound || 0) - 1;
+            if (previousRound < 1) return {};
             try {
-                const dRes = await fetch(`${API_BASE}/driverStandings.json`);
-                const dData = await dRes.json();
-                const dList = dData.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
-                
-                document.getElementById('drivers-loading').classList.add('hidden');
-                const dTable = document.getElementById('drivers-table');
-                dTable.innerHTML = dList.map(d => `
-                    <tr class="hover:bg-white/[0.02] border-b border-gray-900/40 transition">
-                        <td class="py-3 px-4 text-center font-mono font-bold text-gray-400">${d.position}</td>
-                        <td class="py-3 px-4 font-bold text-gray-200">${d.Driver.givenName} ${d.Driver.familyName}</td>
-                        <td class="py-3 px-4 text-gray-400 text-xs">${d.Constructors[0]?.name || 'Няма'}</td>
-                        <td class="py-3 px-4 text-center font-mono text-gray-500">${d.wins}</td>
-                        <td class="py-3 px-4 text-right bg-black/30 font-black text-red-500 font-mono text-sm">${d.points}</td>
-                    </tr>
-                `).join('');
+                const previousJson = await fetchJson(`https://api.jolpi.ca/ergast/f1/${season}/${previousRound}/driverstandings.json`);
+                const previousStandings = previousJson.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
+                return Object.fromEntries(previousStandings.map(item => [
+                    item.Driver?.driverId || driverName(item.Driver),
+                    Number(item.position)
+                ]));
+            } catch (error) {
+                console.warn("Previous standings unavailable", error);
+                return {};
+            }
+        }
 
-                const cRes = await fetch(`${API_BASE}/constructorStandings.json`);
-                const cData = await cRes.json();
-                const cList = cData.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings || [];
+        function driverTrend(currentPosition, previousPosition) {
+            if (!previousPosition) return { direction: "same", delta: 0 };
+            const delta = previousPosition - currentPosition;
+            return {
+                direction: delta > 0 ? "up" : delta < 0 ? "down" : "same",
+                delta: Math.abs(delta)
+            };
+        }
 
-                document.getElementById('constructors-loading').classList.add('hidden');
-                const cTable = document.getElementById('constructors-table');
-                cTable.innerHTML = cList.map(c => `
-                    <tr class="hover:bg-white/[0.02] border-b border-gray-900/40 transition">
-                        <td class="py-3 px-4 text-center font-mono font-bold text-gray-400">${c.position}</td>
-                        <td class="py-3 px-4 font-bold text-gray-200 flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-sm" style="background-color: ${getTeamColor(c.Constructor.constructorId)}"></span>
-                            <span class="truncate">${c.Constructor.name}</span>
+        async function refreshLiveData(manual = false) {
+            setConnection("Свързване", "text-amber-300");
+            if (manual) showLoadingRows();
+
+            try {
+                const [driversJson, constructorsJson, racesJson, resultsJson] = await Promise.all([
+                    fetchJson(`${API_BASE}/driverstandings.json`),
+                    fetchJson(`${API_BASE}/constructorstandings.json`),
+                    fetchJson(`${API_BASE}.json`),
+                    fetchJson(`${API_BASE}/results/1.json`)
+                ]);
+
+                const driverStandings = driversJson.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
+                const constructorStandings = constructorsJson.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings || [];
+                const races = racesJson.MRData.RaceTable.Races || [];
+                const currentRound = driversJson.MRData.StandingsTable.round || driversJson.MRData.StandingsTable.StandingsLists[0]?.round || "0";
+                const season = racesJson.MRData.RaceTable.season || driversJson.MRData.StandingsTable.season || "2026";
+                const previousDriverPositions = await fetchPreviousDriverPositions(season, currentRound);
+                const resultRaces = resultsJson.MRData.RaceTable.Races || [];
+                const winners = Object.fromEntries(resultRaces.map(race => {
+                    const winner = race.Results?.[0]?.Driver;
+                    return [String(race.round), winner ? driverName(winner) : ""];
+                }).filter(([, winner]) => winner));
+
+                state = {
+                    drivers: driverStandings.map(item => ({
+                        pos: Number(item.position),
+                        name: driverName(item.Driver),
+                        nationality: item.Driver?.nationality || "",
+                        team: item.Constructors?.[0]?.name || "F1 Team",
+                        constructorId: item.Constructors?.[0]?.constructorId || "",
+                        wins: Number(item.wins || 0),
+                        points: Number(item.points || 0),
+                        trend: driverTrend(Number(item.position), previousDriverPositions[item.Driver?.driverId || driverName(item.Driver)])
+                    })),
+                    constructors: constructorStandings.map(item => ({
+                        pos: Number(item.position),
+                        name: item.Constructor.name,
+                        constructorId: item.Constructor.constructorId,
+                        wins: Number(item.wins || 0),
+                        points: Number(item.points || 0)
+                    })),
+                    races,
+                    winners,
+                    season,
+                    isFallback: false
+                };
+
+                setConnection("Онлайн", "text-emerald-300");
+                document.getElementById("data-source-label").textContent = "Jolpica / Ergast API";
+            } catch (error) {
+                console.warn(error);
+                state.isFallback = true;
+                setConnection("Fallback данни", "text-amber-300");
+                document.getElementById("data-source-label").textContent = "Локален резервен режим";
+            }
+
+            document.getElementById("season-label").textContent = state.season;
+            document.getElementById("updated-label").textContent = new Date().toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" });
+            updateTagTime();
+            renderAll();
+        }
+
+        function setConnection(text, className) {
+            const label = document.getElementById("connection-label");
+            label.className = `font-black ${className}`;
+            label.textContent = text;
+        }
+
+        function showLoadingRows() {
+            document.getElementById("drivers-table").innerHTML = Array.from({ length: 6 }, () => `<tr><td colspan="7" class="p-3"><div class="h-8 rounded-[6px] skeleton"></div></td></tr>`).join("");
+            document.getElementById("constructors-table").innerHTML = Array.from({ length: 4 }, () => `<tr><td colspan="3" class="p-3"><div class="h-8 rounded-[6px] skeleton"></div></td></tr>`).join("");
+        }
+
+        function trendHtml(trend = { direction: "same", delta: 0 }) {
+            if (trend.direction === "up") {
+                return `<span class="trend-pill bg-emerald-500/12 text-emerald-300 border border-emerald-500/20">↑${trend.delta || ""}</span>`;
+            }
+            if (trend.direction === "down") {
+                return `<span class="trend-pill bg-red-500/12 text-red-300 border border-red-500/20">↓${trend.delta || ""}</span>`;
+            }
+            return `<span class="trend-pill bg-white/5 text-gray-400 border border-white/10">→</span>`;
+        }
+
+        function renderStandings() {
+            document.getElementById("drivers-table").innerHTML = state.drivers.map(driver => {
+                const theme = themeFor(driver.constructorId);
+                const topTenClass = driver.pos <= 10 ? "driver-row-top10" : "";
+                return `
+                    <tr class="${topTenClass} hover:bg-white/[0.035] transition" style="--team-main:${theme.color};">
+                        <td class="py-3 px-4 text-center font-mono font-black ${driver.pos <= 3 ? "text-red-400" : "text-gray-500"}">${driver.pos}</td>
+                        <td class="py-3 px-2 text-center">${trendHtml(driver.trend)}</td>
+                        <td class="py-3 px-4 font-bold text-gray-100">
+                            <div class="flex items-center gap-2.5">
+                                ${driverAvatarHtml(driver.name, "w-8 h-10")}
+                                <span>${driver.name}</span>
+                            </div>
                         </td>
-                        <td class="py-3 px-4 text-right bg-black/30 font-black text-red-500 font-mono text-sm">${c.points}</td>
+                        <td class="py-3 px-4 text-gray-300 text-xs font-bold">${nationalityLabel(driver.nationality)}</td>
+                        <td class="py-3 px-4 text-gray-400 text-xs">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-sm" style="background-color:${theme.color}"></span>
+                                ${driver.team}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center font-mono text-gray-400">${driver.wins}</td>
+                        <td class="py-3 px-4 text-right font-black text-red-400 font-mono">${driver.points}</td>
                     </tr>
-                `).join('');
+                `;
+            }).join("");
 
-                if(dList.length > 0) {
-                    document.getElementById('live-status-text').innerText = `Лидер в шампионата в момента: ${dList[0].Driver.familyName} с общо ${dList[0].points} точки.`;
-                }
-
-            } catch (err) {
-                console.error(err);
-                document.getElementById('drivers-loading').innerText = "Грешка при връзката с API.";
-            }
-        }
-
-        async function loadCalendar() {
-            try {
-                const res = await fetch(`${API_BASE}.json`);
-                const data = await res.json();
-                const races = data.MRData.RaceTable.Races || [];
-
-                document.getElementById('calendar-loading').classList.add('hidden');
-                const grid = document.getElementById('calendar-grid');
-                const todayStr = new Date().toISOString().split('T')[0];
-
-                grid.innerHTML = races.map(race => {
-                    const isPast = race.date < todayStr;
-                    const statusBadge = isPast 
-                        ? `<span class="text-[10px] bg-emerald-950/40 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-900/40">🏁 МИНАЛО</span>`
-                        : `<span class="text-[10px] bg-blue-950/40 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-900/40">📅 ПРЕДСТОИ</span>`;
-
-                    const formattedDate = new Date(race.date).toLocaleDateString('bg-BG', { day: 'numeric', month: 'long' });
-
-                    return `
-                        <div class="p-4 rounded-xl border border-gray-800/80 bg-black/30 flex flex-col justify-between hover:border-gray-700 transition duration-200">
-                            <div>
-                                <div class="flex justify-between items-center gap-2 mb-3">
-                                    <span class="text-[10px] text-gray-600 font-mono font-bold">ROUND ${race.round}</span>
-                                    ${statusBadge}
-                                </div>
-                                <h4 class="text-base font-black text-white tracking-wide">${race.raceName}</h4>
-                                <p class="text-[11px] text-gray-500 truncate mt-0.5">${race.Circuit.circuitName}, ${race.Circuit.Location.locality}</p>
+            document.getElementById("constructors-table").innerHTML = state.constructors.map(team => {
+                const theme = themeFor(team.constructorId);
+                const logo = typeof teamLogos !== "undefined" ? teamLogos[theme.slug] : null;
+                return `
+                    <tr class="constructor-row hover:bg-white/[0.045] transition" style="--team-main:${theme.color};">
+                        <td class="py-3 px-4 text-center font-mono font-black text-white">${team.pos}</td>
+                        <td class="py-3 px-4 font-bold text-gray-100">
+                            <div class="flex items-center gap-2">
+                                ${logo ? `<img src="${logo}" alt="${team.name}" class="w-6 h-6 object-contain">` : `<span class="w-2.5 h-2.5 rounded-sm" style="background-color:${theme.color}"></span>`}
+                                <span class="truncate max-w-[170px]">${team.name}</span>
                             </div>
-                            <div class="mt-4 text-[11px] text-gray-500 font-mono text-right">${formattedDate} 2026</div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (err) {
-                document.getElementById('calendar-loading').innerText = "Неуспешно извличане на календара.";
-            }
+                        </td>
+                        <td class="py-3 px-4 text-right font-black font-mono" style="color:${theme.bright || theme.color};">${team.points}</td>
+                    </tr>
+                `;
+            }).join("");
         }
 
-        async function loadTeams() {
-            try {
-                const res = await fetch(`${API_BASE}/driverStandings.json`);
-                const data = await res.json();
-                const dList = data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings || [];
+        function renderCalendar() {
+            const races = state.races.length ? state.races : [];
+            const grid = document.getElementById("calendar-grid");
 
-                const teamsMap = {};
-                dList.forEach(item => {
-                    const c = item.Constructors[0];
-                    if (!c) return;
-                    if (!teamsMap[c.constructorId]) {
-                        teamsMap[c.constructorId] = { name: c.name, id: c.constructorId, drivers: [] };
-                    }
-                    teamsMap[c.constructorId].drivers.push(`${item.Driver.givenName} ${item.Driver.familyName}`);
+            if (!races.length) {
+                grid.innerHTML = `<div class="surface rounded-[8px] p-5 text-sm text-gray-400">Календарът ще се появи при успешно зареждане от live API.</div>`;
+                renderNextRace(null);
+                return;
+            }
+
+            const nextRace = races.find(race => raceDateTime(race) >= new Date()) || null;
+
+            grid.innerHTML = races.map(race => {
+                const date = raceDateTime(race);
+                const now = new Date();
+                const past = date < now && !isRaceWeek(race);
+                const current = isRaceWeek(race);
+                const isNext = nextRace && String(race.round) === String(nextRace.round);
+                const winner = state.winners?.[String(race.round)];
+                const circuitId = race.Circuit?.circuitId || "";
+                const trackSlug = circuitSlugMap[circuitId] || circuitId;
+                const country = race.Circuit?.Location?.country || "";
+                const flagCode = countryFlags[country];
+                const flagHtml = flagCode
+                    ? `<img src="https://flagcdn.com/${flagCode}.svg" alt="${country} flag" class="w-7 h-7 rounded-full object-cover">`
+                    : `<span class="text-xl">🏁</span>`;
+                const badge = past
+                    ? `<span class="text-[10px] bg-emerald-950/45 text-emerald-300 font-black px-2 py-0.5 rounded-[5px] border border-emerald-900/50">МИНАЛО</span>`
+                    : current
+                        ? `<span class="text-[10px] bg-amber-950/60 text-amber-300 font-black px-2 py-0.5 rounded-[5px] border border-amber-800/70">ТАЗИ СЕДМИЦА</span>`
+                        : `<span class="text-[10px] bg-blue-950/45 text-blue-300 font-black px-2 py-0.5 rounded-[5px] border border-blue-900/50">ПРЕДСТОИ</span>`;
+                const borderClass = current ? "border-amber-500/60 bg-amber-950/10" : "border-white/10";
+                const winnerHtml = past && winner
+                    ? `<div class="relative z-10 mt-4 rounded-[7px] border border-emerald-500/18 bg-emerald-950/18 px-3 py-2 text-xs flex items-center justify-between gap-3">
+                            <span class="text-gray-400 font-bold">Победител</span>
+                            <span class="text-emerald-300 font-black text-right">${winner}</span>
+                       </div>`
+                    : "";
+
+                return `
+                    <article class="surface card-hover rounded-[8px] p-4 ${borderClass} ${isNext ? "next-race-card" : ""}">
+                        <div class="relative z-10 flex justify-between items-center gap-2 mb-3">
+                            <span class="inline-flex items-center rounded-full bg-red-600 text-white px-2.5 py-1 text-[10px] font-black font-mono tracking-wider">ROUND ${race.round}</span>
+                            ${badge}
+                        </div>
+                        <div class="relative z-10 h-20 flex items-center justify-center text-gray-500 mb-3">
+                            ${trackLayoutHtml(trackSlug, circuitId)}
+                        </div>
+                        <div class="relative z-10 flex items-center gap-3">
+                            <span class="flag-badge h-10 w-10 rounded-full flex items-center justify-center overflow-hidden shrink-0">${flagHtml}</span>
+                            <div class="min-w-0">
+                                <h4 class="text-base font-black text-white truncate">${formatRaceName(race.raceName)}</h4>
+                                <p class="text-[11px] text-gray-500 truncate mt-0.5">${race.Circuit?.circuitName || ""}</p>
+                            </div>
+                        </div>
+                        ${winnerHtml}
+                        <div class="relative z-10 mt-4 grid grid-cols-2 gap-3 text-[11px] font-mono text-gray-400">
+                            <div>
+                                <span class="block text-[9px] uppercase font-black text-gray-600">Локация</span>
+                                <span>${race.Circuit?.Location?.locality || ""}, ${country}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-[9px] uppercase font-black text-gray-600">Дати</span>
+                                <span>${formatDateRange(race)}</span>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+
+            renderNextRace(nextRace || races[races.length - 1]);
+        }
+
+        function renderNextRace(race) {
+            if (!race) {
+                document.getElementById("next-race-title").textContent = "Следващо състезание";
+                document.getElementById("next-race-meta").textContent = "Няма зареден live календар.";
+                return;
+            }
+            const date = raceDateTime(race);
+            document.getElementById("next-race-title").textContent = formatRaceName(race.raceName);
+            document.getElementById("next-race-meta").textContent = `${race.Circuit.circuitName} | ${date.toLocaleString("bg-BG", { dateStyle: "medium", timeStyle: "short" })}`;
+            updateTagTime(race);
+        }
+
+        function updateTagTime(race = null) {
+            const now = new Date();
+            const nextRace = race || (state.races || []).find(item => raceDateTime(item) >= now);
+            const circuitId = nextRace?.Circuit?.circuitId;
+            const trackZone = circuitTimeZones[circuitId] || "Europe/Sofia";
+
+            document.getElementById("my-time-label").textContent = now.toLocaleTimeString("bg-BG", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
+            document.getElementById("track-time-label").textContent = now.toLocaleTimeString("bg-BG", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: trackZone
+            });
+        }
+
+        function renderTeams() {
+            const byConstructor = new Map();
+
+            state.constructors.forEach(team => {
+                const theme = themeFor(team.constructorId);
+                byConstructor.set(normalizeConstructorId(team.constructorId), {
+                    ...team,
+                    theme,
+                    drivers: []
                 });
+            });
 
-                document.getElementById('teams-loading').classList.add('hidden');
-                const grid = document.getElementById('teams-grid');
-                
-                grid.innerHTML = Object.values(teamsMap).map((t, idx) => `
-                    <div class="bg-black/30 rounded-xl border border-gray-800/80 overflow-hidden hover:border-gray-700 transition duration-200 flex">
-                        <div class="w-1.5" style="background-color: ${getTeamColor(t.id)}"></div>
-                        <div class="p-4 flex-1 flex flex-col justify-between space-y-4">
-                            <div>
-                                <span class="text-[10px] font-mono text-gray-500 font-bold uppercase">КОНСТРУКТОР</span>
-                                <h4 class="text-sm font-black text-white tracking-wide mt-0.5 truncate">${t.name}</h4>
-                            </div>
-                            <div class="space-y-1.5">
-                                <span class="text-[9px] font-black uppercase text-gray-600 tracking-widest block">Пилоти на отбора:</span>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                    ${t.drivers.map(d => `
-                                        <div class="bg-[#0f131e] p-2 rounded border border-gray-900 text-xs font-bold text-gray-300 truncate text-center">
-                                            ${d}
+            state.drivers.forEach(driver => {
+                const id = normalizeConstructorId(driver.constructorId);
+                if (!byConstructor.has(id)) {
+                    const theme = themeFor(id);
+                    byConstructor.set(id, { pos: 99, name: driver.team, constructorId: id, points: 0, wins: 0, theme, drivers: [] });
+                }
+                byConstructor.get(id).drivers.push(driver);
+            });
+
+            document.getElementById("teams-grid").innerHTML = [...byConstructor.values()].sort((a, b) => a.pos - b.pos).map(team => {
+                const logo = typeof teamLogos !== "undefined" ? teamLogos[team.theme.slug] : null;
+                const car = typeof teamCars !== "undefined" ? teamCars[team.theme.slug] : null;
+                return `
+                    <article class="team-card card-hover relative rounded-[8px] overflow-hidden min-h-[255px] p-5 flex flex-col justify-between"
+                        style="--team-main:${team.theme.color}; --team-dark:${team.theme.dark}; --team-bright:${team.theme.bright};">
+                        <div class="relative z-10 flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <h4 class="text-2xl sm:text-3xl font-black text-white truncate drop-shadow-sm">${team.name}</h4>
+                                <div class="mt-3 flex flex-wrap gap-2.5">
+                                    ${team.drivers.map(driver => `
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            ${driverAvatarHtml(driver.name, "w-6 h-6 shrink-0")}
+                                            <span class="text-xs font-black text-white truncate drop-shadow">${driver.name}</span>
                                         </div>
-                                    `).join('')}
+                                    `).join("")}
                                 </div>
                             </div>
+                            ${logo ? `<div class="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full bg-black/28 border border-white/12 flex items-center justify-center shadow-lg"><img src="${logo}" alt="${team.name}" class="w-8 h-8 sm:w-9 sm:h-9 object-contain"></div>` : ""}
                         </div>
-                    </div>
-                `).join('');
 
-            } catch (err) {
-                document.getElementById('teams-loading').innerText = "Грешка при структуриране на отборите.";
-            }
+                        <div class="relative z-10 mt-6 flex-1 flex items-end">
+                            ${car ? `<img src="${car}" alt="${team.name}" class="team-car w-[126%] sm:w-[118%] max-w-none object-contain -ml-6 sm:-ml-10">` : `<span class="text-6xl font-black text-white/10">${team.name}</span>`}
+                        </div>
+
+                        <div class="absolute right-4 bottom-3 z-10 rounded-[6px] bg-black/22 border border-white/10 px-2.5 py-1 text-[11px] font-black text-white/90">
+                            #${team.pos} · ${team.points} PTS
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        function renderAll() {
+            renderStandings();
+            renderCalendar();
+            renderTeams();
         }
 
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-red-600', 'text-white', 'shadow-lg', 'shadow-red-600/10');
-                btn.classList.add('text-gray-400', 'hover:text-white');
-            });
-            
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            activeBtn.classList.remove('text-gray-400', 'hover:text-white');
-            activeBtn.classList.add('bg-red-600', 'text-white', 'shadow-lg', 'shadow-red-600/10');
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById(`tab-${tabId}`).classList.remove("hidden");
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(`btn-${tabId}`).classList.add("active");
         }
 
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('current-time-display').innerText = now.toLocaleTimeString('bg-BG') + " EEST";
-        }, 1000);
-
-        window.onload = function() {
-            loadStandings();
-            loadCalendar();
-            loadTeams();
-            document.getElementById('current-time-display').innerText = new Date().toLocaleTimeString('bg-BG') + " EEST";
-        };
+        window.addEventListener("load", () => {
+            showLoadingRows();
+            refreshLiveData();
+            setInterval(refreshLiveData, REFRESH_MS);
+            updateTagTime();
+            setInterval(updateTagTime, 30000);
+        });
     </script>
 </body>
 </html>
