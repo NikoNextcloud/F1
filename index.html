@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="images_data.js"></script>
     <script src="tracks.js"></script>
+    <script src="f2-data.js"></script>
     <style>
         :root {
             color-scheme: dark;
@@ -267,6 +268,42 @@
             background: var(--f1-red);
         }
 
+        .series-btn {
+            position: relative;
+            min-height: 2.6rem;
+            border: 1px solid transparent;
+            color: #a3aab8;
+            transition: color .2s ease, border-color .2s ease, background .2s ease;
+        }
+        .series-btn.active[data-series="f1"] {
+            color: #fff;
+            border-color: rgba(225, 6, 0, .65);
+            background: linear-gradient(180deg, rgba(225, 6, 0, .26), rgba(225, 6, 0, .08));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 10px 24px rgba(225, 6, 0, .12);
+        }
+        .series-btn.active[data-series="f2"] {
+            color: #fff;
+            border-color: rgba(14, 165, 233, .65);
+            background: linear-gradient(180deg, rgba(14, 165, 233, .26), rgba(14, 165, 233, .08));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 10px 24px rgba(14, 165, 233, .12);
+        }
+
+        .session-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            border-radius: 6px;
+            padding: .3rem .65rem;
+            font-size: 10.5px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            white-space: nowrap;
+        }
+        .session-pill.live { background: rgba(225, 6, 0, .12); border: 1px solid rgba(225, 6, 0, .4); color: #ff9a90; }
+        .session-pill.upcoming { background: rgba(245, 158, 11, .10); border: 1px solid rgba(245, 158, 11, .35); color: #fcd34d; }
+        .session-pill.idle { background: rgba(255, 255, 255, .05); border: 1px solid var(--line); color: #9aa3b2; }
+
         .live-tv-panel {
             min-height: 56vh;
             background:
@@ -307,11 +344,17 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-4 gap-1.5 surface rounded-[8px] p-1 w-full lg:w-auto">
-                <button onclick="switchTab('standings')" id="btn-standings" class="tab-btn active px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Класиране</button>
-                <button onclick="switchTab('calendar')" id="btn-calendar" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Календар</button>
-                <button onclick="switchTab('teams')" id="btn-teams" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Отбори</button>
-                <button onclick="switchTab('live')" id="btn-live" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">На живо</button>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 w-full lg:w-auto">
+                <div class="flex gap-1.5 surface rounded-[8px] p-1 shrink-0">
+                    <button onclick="switchSeries('f1')" id="btn-series-f1" data-series="f1" class="series-btn active px-4 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">F1</button>
+                    <button onclick="switchSeries('f2')" id="btn-series-f2" data-series="f2" class="series-btn px-4 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">F2</button>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5 surface rounded-[8px] p-1 w-full lg:w-auto" id="tab-bar">
+                    <button onclick="switchTab('standings')" id="btn-standings" class="tab-btn active px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Класиране</button>
+                    <button onclick="switchTab('calendar')" id="btn-calendar" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Календар</button>
+                    <button onclick="switchTab('teams')" id="btn-teams" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">Отбори</button>
+                    <button onclick="switchTab('live')" id="btn-live" class="tab-btn px-3 sm:px-5 py-2 rounded-[7px] text-xs sm:text-sm font-black uppercase tracking-wide">На живо</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -322,14 +365,16 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                 <div class="space-y-2">
                     <div class="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-widest">
-                        <span class="inline-flex items-center gap-2 rounded-[6px] border border-red-500/35 bg-red-500/10 px-2.5 py-1 text-red-300">
+                        <span id="feed-type-badge" class="inline-flex items-center gap-2 rounded-[6px] border border-red-500/35 bg-red-500/10 px-2.5 py-1 text-red-300">
                             <span class="live-dot h-2 w-2 rounded-full bg-red-500"></span>
                             Live данни
                         </span>
+                        <span id="session-status-pill" class="session-pill idle">Зареждане</span>
                         <span id="data-source-label" class="text-gray-500">Зареждане...</span>
                     </div>
                     <h2 id="next-race-title" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Следващо състезание</h2>
                     <p id="next-race-meta" class="text-sm text-gray-400">Проверявам календара...</p>
+                    <p id="session-detail-line" class="text-xs text-gray-500"></p>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
@@ -368,20 +413,20 @@
                     <div class="flex items-end justify-between gap-3">
                         <div>
                             <h3 class="text-lg font-black tracking-wide text-white">Класиране на пилотите</h3>
-                            <p class="text-xs text-gray-500">Данните идват от Jolpica/Ergast API и се презареждат автоматично.</p>
+                            <p id="standings-desc" class="text-xs text-gray-500">Данните идват от Jolpica/Ergast API и се презареждат автоматично.</p>
                         </div>
-                        <button onclick="refreshLiveData(true)" class="rounded-[7px] border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-white hover:border-red-500/50 hover:bg-red-500/10 transition">Обнови</button>
+                        <button onclick="refreshLiveData(true)" id="refresh-btn" class="rounded-[7px] border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-white hover:border-red-500/50 hover:bg-red-500/10 transition">Обнови</button>
                     </div>
                     <div class="overflow-x-auto surface rounded-[8px]">
                         <table class="w-full text-left border-collapse min-w-[820px]">
                             <thead>
                                 <tr class="border-b border-white/10 text-gray-400 text-[11px] font-black uppercase tracking-wider bg-black/35">
                                     <th class="py-3.5 px-4 text-center w-14">Поз.</th>
-                                    <th class="py-3.5 px-2 text-center w-16">Движ.</th>
+                                    <th id="th-trend" class="py-3.5 px-2 text-center w-16">Движ.</th>
                                     <th class="py-3.5 px-4">Пилот</th>
                                     <th class="py-3.5 px-4">Националност</th>
                                     <th class="py-3.5 px-4">Отбор</th>
-                                    <th class="py-3.5 px-4 text-center w-20">Победи</th>
+                                    <th id="th-wins" class="py-3.5 px-4 text-center w-20">Победи</th>
                                     <th class="py-3.5 px-4 text-right w-24">Точки</th>
                                 </tr>
                             </thead>
@@ -426,7 +471,7 @@
         <section id="tab-teams" class="tab-content hidden space-y-5">
             <div>
                 <h3 class="text-lg font-black tracking-wide text-white">Отбори и пилоти</h3>
-                <p class="text-xs text-gray-500">Съставите се събират от live класирането и се комбинират с наличните изображения в проекта.</p>
+                <p id="teams-desc" class="text-xs text-gray-500">Съставите се събират от live класирането и се комбинират с наличните изображения в проекта.</p>
             </div>
             <div id="teams-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-5"></div>
         </section>
@@ -553,6 +598,7 @@
         ];
 
         let state = {
+            activeSeries: "f1",
             drivers: fallbackDrivers,
             constructors: fallbackConstructors,
             races: [],
@@ -739,12 +785,10 @@
                 };
 
                 setConnection("Онлайн", "text-emerald-300");
-                document.getElementById("data-source-label").textContent = "Jolpica / Ergast API";
             } catch (error) {
                 console.warn(error);
                 state.isFallback = true;
                 setConnection("Fallback данни", "text-amber-300");
-                document.getElementById("data-source-label").textContent = "Локален резервен режим";
             }
 
             document.getElementById("season-label").textContent = state.season;
@@ -845,7 +889,6 @@
 
             if (!races.length) {
                 grid.innerHTML = `<div class="surface rounded-[8px] p-5 text-sm text-gray-400">Календарът ще се появи при успешно зареждане от live API.</div>`;
-                renderNextRace(null);
                 return;
             }
 
@@ -908,8 +951,6 @@
                     </article>
                 `;
             }).join("");
-
-            renderNextRace(nextRace || races[races.length - 1]);
         }
 
         function renderNextRace(race) {
@@ -997,10 +1038,375 @@
             }).join("");
         }
 
+        // ================= F1 статус на сесията (безплатно, изчислено локално) =================
+        // Истинско секунда-по-секунда live timing (OpenF1) изисква платен абононамент по
+        // време на активна сесия, затова тук показваме статус (коя сесия тече в момента /
+        // кога стартира следващата) на база разписанието от Jolpica — безплатно и точно.
+        const F1_SESSION_DURATIONS = {
+            FirstPractice: 60, SecondPractice: 60, ThirdPractice: 60,
+            SprintQualifying: 45, Sprint: 40, Qualifying: 60
+        };
+        const F1_SESSION_LABELS = {
+            FirstPractice: "Свободна тренировка 1",
+            SecondPractice: "Свободна тренировка 2",
+            ThirdPractice: "Свободна тренировка 3",
+            SprintQualifying: "Спринт квалификация",
+            Sprint: "Спринт",
+            Qualifying: "Квалификация",
+            Race: "Състезание"
+        };
+
+        function f1SessionsForRace(race) {
+            const sessions = [];
+            ["FirstPractice", "SecondPractice", "ThirdPractice", "SprintQualifying", "Sprint", "Qualifying"].forEach(key => {
+                const s = race[key];
+                if (s?.date) {
+                    const start = new Date(`${s.date}T${s.time || "00:00:00Z"}`);
+                    sessions.push({ key, label: F1_SESSION_LABELS[key], start, end: new Date(start.getTime() + F1_SESSION_DURATIONS[key] * 60000) });
+                }
+            });
+            const raceStart = raceDateTime(race);
+            sessions.push({ key: "Race", label: F1_SESSION_LABELS.Race, start: raceStart, end: new Date(raceStart.getTime() + 120 * 60000) });
+            return sessions.sort((a, b) => a.start - b.start);
+        }
+
+        function pickSessionStatus(sessions, now = new Date()) {
+            const live = sessions.find(s => now >= s.start && now <= s.end);
+            if (live) return { state: "live", session: live };
+            const upcoming = sessions.filter(s => s.start > now).sort((a, b) => a.start - b.start)[0];
+            if (upcoming) return { state: "upcoming", session: upcoming };
+            return { state: "idle", session: [...sessions].sort((a, b) => b.end - a.end)[0] || null };
+        }
+
+        function currentF1Weekend() {
+            const races = state.races || [];
+            if (!races.length) return null;
+            const now = new Date();
+            return races.find(isRaceWeek) || races.find(r => raceDateTime(r) >= now) || races[races.length - 1];
+        }
+
+        // ================= F2 статус (на ниво ден — виж бележките в f2-data.js) =================
+        function f2RoundsSorted() {
+            return [...F2_CALENDAR].sort((a, b) => new Date(a.sprintDate) - new Date(b.sprintDate));
+        }
+
+        function f2SessionsForRound(round) {
+            const dayStart = d => { const s = new Date(d); s.setHours(0, 0, 0, 0); return s; };
+            const dayEnd = d => { const e = new Date(d); e.setHours(23, 59, 59, 999); return e; };
+            const sprint = new Date(`${round.sprintDate}T00:00:00`);
+            const feature = new Date(`${round.featureDate}T00:00:00`);
+            const practice = new Date(sprint);
+            practice.setDate(practice.getDate() - 1);
+            return [
+                { key: "Practice", label: "Тренировки + Квалификация", start: dayStart(practice), end: dayEnd(practice) },
+                { key: "Sprint", label: "Спринт състезание", start: dayStart(sprint), end: dayEnd(sprint) },
+                { key: "Feature", label: "Състезание (Feature Race)", start: dayStart(feature), end: dayEnd(feature) }
+            ];
+        }
+
+        function currentF2Round() {
+            const rounds = f2RoundsSorted();
+            if (!rounds.length) return null;
+            const now = new Date();
+            const active = rounds.find(r => {
+                const sessions = f2SessionsForRound(r);
+                return now >= sessions[0].start && now <= sessions[sessions.length - 1].end;
+            });
+            if (active) return active;
+            return rounds.find(r => new Date(`${r.sprintDate}T00:00:00`) >= now) || rounds[rounds.length - 1];
+        }
+
+        // ================= Помощни функции за форматиране =================
+        function formatCountdown(target) {
+            const diffMs = target - new Date();
+            if (diffMs <= 0) return "сега";
+            const totalMin = Math.floor(diffMs / 60000);
+            const days = Math.floor(totalMin / 1440);
+            const hours = Math.floor((totalMin % 1440) / 60);
+            const mins = totalMin % 60;
+            if (days > 0) return `${days}д ${String(hours).padStart(2, "0")}ч`;
+            if (hours > 0) return `${hours}ч ${String(mins).padStart(2, "0")}м`;
+            return `${mins}м`;
+        }
+
+        function formatElapsed(start) {
+            const diffMs = new Date() - start;
+            const totalMin = Math.max(0, Math.floor(diffMs / 60000));
+            const h = Math.floor(totalMin / 60);
+            const m = totalMin % 60;
+            return h > 0 ? `${h}ч ${String(m).padStart(2, "0")}м` : `${m}м`;
+        }
+
+        function updateDataSourceLabel() {
+            const label = document.getElementById("data-source-label");
+            if (!label) return;
+            label.textContent = state.activeSeries === "f1"
+                ? (state.isFallback ? "Локален резервен режим" : "Jolpica / Ergast API")
+                : `Ръчно обновявани данни · ${F2_META.lastUpdated}`;
+        }
+
+        function updateSessionStatus() {
+            const pill = document.getElementById("session-status-pill");
+            const detail = document.getElementById("session-detail-line");
+            if (!pill || !detail) return;
+
+            if (state.activeSeries === "f1") {
+                const race = currentF1Weekend();
+                if (!race) { pill.className = "session-pill idle"; pill.textContent = "Няма данни"; detail.textContent = ""; return; }
+                const status = pickSessionStatus(f1SessionsForRace(race));
+                if (status.state === "live") {
+                    pill.className = "session-pill live";
+                    pill.innerHTML = `<span class="live-dot h-1.5 w-1.5 rounded-full bg-red-500"></span> На живо`;
+                    detail.textContent = `${status.session.label} · ${formatRaceName(race.raceName)} · започна преди ${formatElapsed(status.session.start)}`;
+                } else if (status.state === "upcoming") {
+                    pill.className = "session-pill upcoming";
+                    pill.textContent = "Предстои";
+                    detail.textContent = `${status.session.label} · ${formatRaceName(race.raceName)} · старт след ${formatCountdown(status.session.start)}`;
+                } else {
+                    pill.className = "session-pill idle";
+                    pill.textContent = "Уикендът приключи";
+                    detail.textContent = status.session ? `Последна сесия: ${status.session.label}` : "";
+                }
+            } else {
+                const round = currentF2Round();
+                if (!round) { pill.className = "session-pill idle"; pill.textContent = "Няма данни"; detail.textContent = ""; return; }
+                const status = pickSessionStatus(f2SessionsForRound(round));
+                if (status.state === "live") {
+                    pill.className = "session-pill live";
+                    pill.innerHTML = `<span class="live-dot h-1.5 w-1.5 rounded-full bg-red-500"></span> Ден на кръга`;
+                    detail.textContent = `${status.session.label} · Кръг ${round.round} · F2 ${round.name} (${round.circuitName})`;
+                } else if (status.state === "upcoming") {
+                    pill.className = "session-pill upcoming";
+                    pill.textContent = "Предстои";
+                    detail.textContent = `${status.session.label} · Кръг ${round.round} · F2 ${round.name} · старт след ${formatCountdown(status.session.start)}`;
+                } else {
+                    pill.className = "session-pill idle";
+                    pill.textContent = "Сезонът приключи";
+                    detail.textContent = "";
+                }
+            }
+        }
+
+        function renderHero() {
+            if (state.activeSeries === "f1") {
+                const now = new Date();
+                const races = state.races || [];
+                renderNextRace(races.find(r => raceDateTime(r) >= now) || races[races.length - 1] || null);
+            } else {
+                const round = currentF2Round();
+                if (round) {
+                    const sprintDate = new Date(`${round.sprintDate}T00:00:00`);
+                    const featureDate = new Date(`${round.featureDate}T00:00:00`);
+                    document.getElementById("next-race-title").textContent = `F2 · Кръг ${round.round} · ${round.name}`;
+                    document.getElementById("next-race-meta").textContent = `${round.circuitName} | ${sprintDate.toLocaleDateString("bg-BG", { day: "numeric", month: "long" })} – ${featureDate.toLocaleDateString("bg-BG", { day: "numeric", month: "long" })}`;
+                    updateTagTime({ Circuit: { circuitId: round.circuitId } });
+                } else {
+                    document.getElementById("next-race-title").textContent = "Формула 2";
+                    document.getElementById("next-race-meta").textContent = "Няма зареден календар.";
+                    updateTagTime();
+                }
+            }
+            updateDataSourceLabel();
+            updateSessionStatus();
+        }
+
+        // ================= F2 рендиране (Класиране / Календар / Отбори) =================
+        function renderF2Standings() {
+            document.getElementById("drivers-table").innerHTML = F2_DRIVERS.map((driver, i) => {
+                const theme = f2TeamTheme[driver.teamId] || { color: "#8892a6" };
+                const topTenClass = driver.pos <= 10 ? "driver-row-top10" : "";
+                const podiumClass = driver.pos <= 3 ? `pos-${driver.pos}` : "";
+                return `
+                    <tr class="driver-row row-anim ${topTenClass} ${podiumClass}" style="--team-main:${theme.color}; animation-delay:${Math.min(i, 14) * 35}ms;">
+                        <td class="py-3 px-4 text-center"><span class="pos-num font-mono font-black text-base ${driver.pos <= 3 ? "" : "text-gray-500"}">${driver.pos}</span></td>
+                        <td class="py-3 px-2 text-center"><span class="trend-pill bg-white/5 text-gray-400 border border-white/10">#${driver.number}</span></td>
+                        <td class="py-3 px-4 font-bold text-gray-100">
+                            <div class="flex items-center gap-2.5">
+                                ${driverAvatarHtml(driver.name, "w-8 h-10")}
+                                <span>${driver.name}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-gray-300 text-xs font-bold">${driver.nationality}</td>
+                        <td class="py-3 px-4 text-gray-400 text-xs">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-sm" style="background-color:${theme.color}"></span>
+                                ${driver.team}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center font-mono text-gray-600">—</td>
+                        <td class="py-3 px-4 text-right font-black text-red-400 font-mono"><span class="count-up" data-target="${driver.points}">${driver.points}</span></td>
+                    </tr>
+                `;
+            }).join("");
+
+            document.getElementById("constructors-table").innerHTML = F2_TEAMS.map((team, i) => {
+                const theme = f2TeamTheme[team.teamId] || { color: "#8892a6" };
+                return `
+                    <tr class="constructor-row row-anim" style="--team-main:${theme.color}; animation-delay:${Math.min(i, 14) * 40}ms;">
+                        <td class="py-3 px-4 text-center font-mono font-black text-white">${team.pos}</td>
+                        <td class="py-3 px-4 font-bold text-gray-100">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-sm" style="background-color:${theme.color}"></span>
+                                <span class="truncate max-w-[170px]">${team.name}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-right font-black font-mono" style="color:${theme.bright || theme.color};"><span class="count-up" data-target="${team.points}">${team.points}</span></td>
+                    </tr>
+                `;
+            }).join("");
+
+            animateCounters();
+        }
+
+        function renderF2Calendar() {
+            const rounds = f2RoundsSorted();
+            const grid = document.getElementById("calendar-grid");
+            const now = new Date();
+            const activeRound = currentF2Round();
+
+            grid.innerHTML = rounds.map(round => {
+                const sprintDate = new Date(`${round.sprintDate}T00:00:00`);
+                const featureDate = new Date(`${round.featureDate}T00:00:00`);
+                const practiceDate = new Date(sprintDate);
+                practiceDate.setDate(practiceDate.getDate() - 1);
+                const weekendEnd = new Date(featureDate.getTime() + 20 * 3600000);
+                const isCurrent = now >= practiceDate && now <= weekendEnd;
+                const past = weekendEnd < now;
+                const trackSlug = circuitSlugMap[round.circuitId] || round.circuitId;
+                const flagCode = countryFlags[round.country];
+                const flagHtml = flagCode
+                    ? `<img src="https://flagcdn.com/${flagCode}.svg" alt="${round.country} flag" class="w-7 h-7 rounded-full object-cover">`
+                    : `<span class="text-xl">🏁</span>`;
+                const badge = past
+                    ? `<span class="text-[10px] bg-emerald-950/45 text-emerald-300 font-black px-2 py-0.5 rounded-[5px] border border-emerald-900/50">МИНАЛО</span>`
+                    : isCurrent
+                        ? `<span class="text-[10px] bg-amber-950/60 text-amber-300 font-black px-2 py-0.5 rounded-[5px] border border-amber-800/70">ТАЗИ СЕДМИЦА</span>`
+                        : `<span class="text-[10px] bg-blue-950/45 text-blue-300 font-black px-2 py-0.5 rounded-[5px] border border-blue-900/50">ПРЕДСТОИ</span>`;
+                const borderClass = isCurrent ? "border-amber-500/60 bg-amber-950/10" : "border-white/10";
+                const sameMonth = practiceDate.getMonth() === featureDate.getMonth();
+                const dateRange = sameMonth
+                    ? `${practiceDate.toLocaleDateString("bg-BG", { day: "numeric" })} - ${featureDate.toLocaleDateString("bg-BG", { day: "numeric", month: "long" })}`
+                    : `${practiceDate.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })} - ${featureDate.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })}`;
+
+                return `
+                    <article class="surface card-hover rounded-[8px] p-4 ${borderClass} ${activeRound && activeRound.round === round.round ? "next-race-card" : ""}">
+                        <div class="relative z-10 flex justify-between items-center gap-2 mb-3">
+                            <span class="inline-flex items-center rounded-full bg-sky-600 text-white px-2.5 py-1 text-[10px] font-black font-mono tracking-wider">КРЪГ ${round.round}</span>
+                            ${badge}
+                        </div>
+                        <div class="relative z-10 h-20 flex items-center justify-center text-gray-500 mb-3">
+                            ${trackLayoutHtml(trackSlug, round.circuitId)}
+                        </div>
+                        <div class="relative z-10 flex items-center gap-3">
+                            <span class="flag-badge h-10 w-10 rounded-full flex items-center justify-center overflow-hidden shrink-0">${flagHtml}</span>
+                            <div class="min-w-0">
+                                <h4 class="text-base font-black text-white truncate">F2 · ${round.name}</h4>
+                                <p class="text-[11px] text-gray-500 truncate mt-0.5">${round.circuitName}</p>
+                            </div>
+                        </div>
+                        <div class="relative z-10 mt-4 grid grid-cols-2 gap-3 text-[11px] font-mono text-gray-400">
+                            <div>
+                                <span class="block text-[9px] uppercase font-black text-gray-600">Локация</span>
+                                <span>${round.locality}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block text-[9px] uppercase font-black text-gray-600">Дати</span>
+                                <span>${dateRange}</span>
+                            </div>
+                        </div>
+                        <div class="relative z-10 mt-4 rounded-[7px] border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] font-mono text-gray-400 flex items-center justify-between gap-2">
+                            <span>Спринт: ${sprintDate.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })}</span>
+                            <span>Feature: ${featureDate.toLocaleDateString("bg-BG", { day: "numeric", month: "short" })}</span>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        function renderF2Teams() {
+            const byTeam = new Map();
+            F2_TEAMS.forEach(t => byTeam.set(t.teamId, { ...t, drivers: [] }));
+            F2_DRIVERS.forEach(d => {
+                if (!byTeam.has(d.teamId)) byTeam.set(d.teamId, { teamId: d.teamId, name: d.team, points: 0, pos: 99, drivers: [] });
+                byTeam.get(d.teamId).drivers.push(d);
+            });
+
+            document.getElementById("teams-grid").innerHTML = [...byTeam.values()].sort((a, b) => a.pos - b.pos).map(team => {
+                const theme = f2TeamTheme[team.teamId] || { color: "#8892a6", dark: "#29313f", bright: "#aeb7c7" };
+                return `
+                    <article class="team-card card-hover relative rounded-[8px] overflow-hidden min-h-[190px] p-5 flex flex-col justify-between"
+                        style="--team-main:${theme.color}; --team-dark:${theme.dark}; --team-bright:${theme.bright};">
+                        <span class="shine"></span>
+                        <div class="relative z-10 flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <h4 class="text-2xl sm:text-3xl font-black text-white truncate drop-shadow-sm">${team.name}</h4>
+                                <div class="mt-3 flex flex-wrap gap-2.5">
+                                    ${team.drivers.map(driver => `
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            ${driverAvatarHtml(driver.name, "w-6 h-6 shrink-0")}
+                                            <span class="text-xs font-black text-white truncate drop-shadow">#${driver.number} ${driver.name}</span>
+                                        </div>
+                                    `).join("")}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative z-10 mt-6 flex-1 flex items-end">
+                            <span class="text-6xl font-black text-white/10">${team.name}</span>
+                        </div>
+                        <div class="absolute right-4 bottom-3 z-10 rounded-[6px] bg-black/22 border border-white/10 px-2.5 py-1 text-[11px] font-black text-white/90">
+                            #${team.pos} · ${team.points} PTS
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        function switchSeries(series) {
+            state.activeSeries = series;
+            document.querySelectorAll(".series-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.series === series));
+
+            const tabBar = document.getElementById("tab-bar");
+            const liveBtn = document.getElementById("btn-live");
+            const refreshBtn = document.getElementById("refresh-btn");
+            const feedBadge = document.getElementById("feed-type-badge");
+
+            if (series === "f2") {
+                liveBtn.classList.add("hidden");
+                tabBar.classList.remove("grid-cols-4");
+                tabBar.classList.add("grid-cols-3");
+                if (!document.getElementById("tab-live").classList.contains("hidden")) switchTab("standings");
+                document.getElementById("standings-desc").textContent = `Няма безплатен live API за F2 — класирането се поддържа на ръка (${F2_META.source}).`;
+                document.getElementById("teams-desc").textContent = "Съставите и номерата на болидите за сезон 2026.";
+                document.getElementById("th-trend").textContent = "№";
+                refreshBtn.classList.add("hidden");
+                feedBadge.innerHTML = "Ръчни данни";
+                feedBadge.className = "inline-flex items-center gap-2 rounded-[6px] border border-sky-500/35 bg-sky-500/10 px-2.5 py-1 text-sky-300";
+            } else {
+                liveBtn.classList.remove("hidden");
+                tabBar.classList.remove("grid-cols-3");
+                tabBar.classList.add("grid-cols-4");
+                document.getElementById("standings-desc").textContent = "Данните идват от Jolpica/Ergast API и се презареждат автоматично.";
+                document.getElementById("teams-desc").textContent = "Съставите се събират от live класирането и се комбинират с наличните изображения в проекта.";
+                document.getElementById("th-trend").textContent = "Движ.";
+                refreshBtn.classList.remove("hidden");
+                feedBadge.innerHTML = `<span class="live-dot h-2 w-2 rounded-full bg-red-500"></span> Live данни`;
+                feedBadge.className = "inline-flex items-center gap-2 rounded-[6px] border border-red-500/35 bg-red-500/10 px-2.5 py-1 text-red-300";
+            }
+
+            renderAll();
+        }
+
         function renderAll() {
-            renderStandings();
-            renderCalendar();
-            renderTeams();
+            if (state.activeSeries === "f1") {
+                renderStandings();
+                renderCalendar();
+                renderTeams();
+            } else {
+                renderF2Standings();
+                renderF2Calendar();
+                renderF2Teams();
+            }
+            renderHero();
         }
 
         function switchTab(tabId) {
@@ -1051,6 +1457,7 @@
             setInterval(refreshLiveData, REFRESH_MS);
             updateTagTime();
             setInterval(updateTagTime, 30000);
+            setInterval(updateSessionStatus, 30000);
             setupLivePlayer();
         });
     </script>
