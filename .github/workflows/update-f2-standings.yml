@@ -1,16 +1,25 @@
 name: Update F2 standings
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/update_f2_standings.py
+      - .github/workflows/update-f2-standings.yml
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   refresh-f2-standings:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,3 +42,9 @@ jobs:
           git add f2-data.js
           git commit -m "Update F2 standings from FIA"
           git push
+      - name: Upload updated website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Publish updated website
+        uses: actions/deploy-pages@v4
