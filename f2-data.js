@@ -18,7 +18,7 @@
 // ==========================================================================
 
 const F2_META = {
-    lastUpdated: "28 юни 2026 (след Кръг 6 — Шпилберг)",
+    lastUpdated: "2026-10-29 14:42 UTC (FIA)",
     source: "fiaformula2.com"
 };
 
@@ -54,43 +54,43 @@ const F2_TEAM_NAMES = {
 
 // Класиране на пилотите (точки към Кръг 6 — Шпилберг)
 const F2_DRIVERS = [
-    { pos: 1,  name: "Gabriele Minì",             nationality: "Italian",    teamId: "mp_motorsport",  number: 9,  points: 108 },
-    { pos: 2,  name: "Nikola Tsolov",              nationality: "Bulgarian",  teamId: "campos",         number: 6,  points: 106 },
-    { pos: 3,  name: "Rafael Câmara",              nationality: "Brazilian",  teamId: "invicta",        number: 1,  points: 82 },
-    { pos: 4,  name: "Alexander Dunne",            nationality: "Irish",      teamId: "rodin",          number: 15, points: 80 },
-    { pos: 5,  name: "Noel León",                  nationality: "Mexican",    teamId: "campos",         number: 5,  points: 62 },
-    { pos: 6,  name: "Dino Beganovic",             nationality: "Swedish",    teamId: "dams",           number: 7,  points: 53 },
-    { pos: 7,  name: "Martinius Stenshorne",       nationality: "Norwegian",  teamId: "rodin",          number: 14, points: 48 },
-    { pos: 8,  name: "Laurens van Hoepen",         nationality: "Dutch",      teamId: "trident",        number: 24, points: 47 },
-    { pos: 9,  name: "Kush Maini",                 nationality: "Indian",     teamId: "art",            number: 16, points: 43 },
-    { pos: 10, name: "Ritomo Miyata",              nationality: "Japanese",   teamId: "hitech",         number: 3,  points: 30 },
-    { pos: 11, name: "Sebastián Montoya",          nationality: "Colombian",  teamId: "prema",          number: 11, points: 28 },
-    { pos: 12, name: "Oliver Goethe",              nationality: "German",     teamId: "mp_motorsport",  number: 10, points: 28 },
-    { pos: 13, name: "Joshua Dürksen",             nationality: "Paraguayan", teamId: "invicta",        number: 2,  points: 23 },
-    { pos: 14, name: "Tasanapol Inthraphuvasak",   nationality: "Thai",       teamId: "art",            number: 17, points: 23 },
-    { pos: 15, name: "Colton Herta",               nationality: "American",   teamId: "hitech",         number: 4,  points: 20 },
-    { pos: 16, name: "John Bennett",               nationality: "British",    teamId: "trident",        number: 25, points: 17 },
-    { pos: 17, name: "Roman Bilinski",             nationality: "Polish",     teamId: "dams",           number: 8,  points: 16 },
-    { pos: 18, name: "Nico Varrone",               nationality: "Argentine",  teamId: "van_amersfoort", number: 22, points: 14 },
-    { pos: 19, name: "Emerson Fittipaldi",         nationality: "Brazilian",  teamId: "aix",            number: 20, points: 10 },
-    { pos: 20, name: "Cian Shields",                nationality: "British",   teamId: "aix",            number: 21, points: 10 },
-    { pos: 21, name: "Mari Boya",                  nationality: "Spanish",    teamId: "prema",          number: 12, points: 10 },
-    { pos: 22, name: "Rafael Villagómez",          nationality: "Mexican",    teamId: "van_amersfoort", number: 23, points: 6 }
+    { pos: 4,  name: "Gabriele Minì",             nationality: "Italian",    teamId: "mp_motorsport",  number: 9,  points: 163 },
+    { pos: 2,  name: "Nikola Tsolov",              nationality: "Bulgarian",  teamId: "campos",         number: 6,  points: 200 },
+    { pos: 1,  name: "Rafael Câmara",              nationality: "Brazilian",  teamId: "invicta",        number: 1,  points: 207 },
+    { pos: 3,  name: "Alexander Dunne",            nationality: "Irish",      teamId: "rodin",          number: 15, points: 189 },
+    { pos: 6,  name: "Noel León",                  nationality: "Mexican",    teamId: "campos",         number: 5,  points: 133 },
+    { pos: 5,  name: "Dino Beganovic",             nationality: "Swedish",    teamId: "dams",           number: 7,  points: 137 },
+    { pos: 7,  name: "Martinius Stenshorne",       nationality: "Norwegian",  teamId: "rodin",          number: 14, points: 107 },
+    { pos: 10,  name: "Laurens van Hoepen",         nationality: "Dutch",      teamId: "trident",        number: 24, points: 90 },
+    { pos: 9,  name: "Kush Maini",                 nationality: "Indian",     teamId: "art",            number: 16, points: 90 },
+    { pos: 12, name: "Ritomo Miyata",              nationality: "Japanese",   teamId: "hitech",         number: 3,  points: 70 },
+    { pos: 17, name: "Sebastián Montoya",          nationality: "Colombian",  teamId: "prema",          number: 11, points: 30 },
+    { pos: 15, name: "Oliver Goethe",              nationality: "German",     teamId: "mp_motorsport",  number: 10, points: 37 },
+    { pos: 8, name: "Joshua Dürksen",             nationality: "Paraguayan", teamId: "invicta",        number: 2,  points: 90 },
+    { pos: 11, name: "Tasanapol Inthraphuvasak",   nationality: "Thai",       teamId: "art",            number: 17, points: 71 },
+    { pos: 19, name: "Colton Herta",               nationality: "American",   teamId: "hitech",         number: 4,  points: 26 },
+    { pos: 14, name: "John Bennett",               nationality: "British",    teamId: "trident",        number: 25, points: 38 },
+    { pos: 16, name: "Roman Bilinski",             nationality: "Polish",     teamId: "dams",           number: 8,  points: 36 },
+    { pos: 21, name: "Nico Varrone",               nationality: "Argentine",  teamId: "van_amersfoort", number: 22, points: 15 },
+    { pos: 18, name: "Emerson Fittipaldi",         nationality: "Brazilian",  teamId: "aix",            number: 20, points: 28 },
+    { pos: 22, name: "Cian Shields",                nationality: "British",   teamId: "aix",            number: 21, points: 10 },
+    { pos: 20, name: "Mari Boya",                  nationality: "Spanish",    teamId: "prema",          number: 12, points: 21 },
+    { pos: 13, name: "Rafael Villagómez",          nationality: "Mexican",    teamId: "van_amersfoort", number: 23, points: 42 }
 ].map(d => ({ ...d, team: F2_TEAM_NAMES[d.teamId] }));
 
 // Класиране на отборите
 const F2_TEAMS = [
-    { pos: 1,  teamId: "campos",         points: 168 },
-    { pos: 2,  teamId: "mp_motorsport",  points: 136 },
-    { pos: 3,  teamId: "rodin",          points: 128 },
-    { pos: 4,  teamId: "invicta",        points: 105 },
-    { pos: 5,  teamId: "dams",           points: 69 },
-    { pos: 6,  teamId: "art",            points: 66 },
-    { pos: 7,  teamId: "trident",        points: 64 },
-    { pos: 8,  teamId: "hitech",         points: 50 },
-    { pos: 9,  teamId: "prema",          points: 38 },
-    { pos: 10, teamId: "van_amersfoort", points: 20 },
-    { pos: 11, teamId: "aix",            points: 20 }
+    { pos: 1,  teamId: "campos",         points: 333 },
+    { pos: 4,  teamId: "mp_motorsport",  points: 200 },
+    { pos: 3,  teamId: "rodin",          points: 296 },
+    { pos: 2,  teamId: "invicta",        points: 297 },
+    { pos: 5,  teamId: "dams",           points: 173 },
+    { pos: 6,  teamId: "art",            points: 161 },
+    { pos: 7,  teamId: "trident",        points: 128 },
+    { pos: 8,  teamId: "hitech",         points: 96 },
+    { pos: 10,  teamId: "prema",          points: 51 },
+    { pos: 9, teamId: "van_amersfoort", points: 59 },
+    { pos: 11, teamId: "aix",            points: 38 }
 ].map(t => ({ ...t, name: F2_TEAM_NAMES[t.teamId] }));
 
 // Календар 2026 (14 кръга). F2 уикендите следват стандартния формат:
