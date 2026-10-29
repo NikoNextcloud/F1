@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from io import StringIO
 
 import pandas as pd
-import requests
+from urllib.request import Request, urlopen
 
 REPO_FILE = "f2-data.js"
 BASE = "https://www.fiaformula2.com/en/standings/2026"
@@ -20,11 +20,11 @@ def norm(value):
 
 
 def read_table(url, kind):
-    response = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0 F2 standings updater"})
-    response.raise_for_status()
-    tables = pd.read_html(StringIO(response.text))
+    with urlopen(Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=30) as response:
+        html = response.read().decode("utf-8")
+    tables = pd.read_html(StringIO(html))
     for table in tables:
-        cols = {norm(c): c for c in table.columns}
+        cols = {norm(c[-1] if isinstance(c, tuple) else c): c for c in table.columns}
         name_col = next((c for n, c in cols.items() if n in ({"driver", "drivers"} if kind == "driver" else {"team", "teams"})), None)
         points_col = next((c for n, c in cols.items() if "point" in n or n in {"pts", "pts."}), None)
         if name_col is None or points_col is None:
@@ -83,10 +83,13 @@ def main():
     path = sys.argv[1]
     with open(path, encoding="utf-8") as file:
         text = file.read()
+    original = text
     drivers = read_table(BASE + "/drivers", "driver")
     teams = read_table(BASE + "/teams", "team")
     text = replace_points(text, "driver", drivers)
     text = replace_points(text, "team", teams)
+    if text == original:
+        return
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     text, count = re.subn(r'lastUpdated: "[^"]+"', f'lastUpdated: "{timestamp} (FIA)"', text, count=1)
     if count != 1:
