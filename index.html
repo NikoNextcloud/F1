@@ -1142,7 +1142,7 @@
             if (!label) return;
             label.textContent = state.activeSeries === "f1"
                 ? (state.isFallback ? "Локален резервен режим" : "Jolpica / Ergast API")
-                : `Ръчно обновявани данни · ${F2_META.lastUpdated}`;
+                : `Класиране от FIA · ${F2_META.lastUpdated}`;
         }
 
         function updateSessionStatus() {
@@ -1212,7 +1212,7 @@
 
         // ================= F2 рендиране (Класиране / Календар / Отбори) =================
         function renderF2Standings() {
-            document.getElementById("drivers-table").innerHTML = F2_DRIVERS.map((driver, i) => {
+            document.getElementById("drivers-table").innerHTML = [...F2_DRIVERS].sort((a, b) => a.pos - b.pos).map((driver, i) => {
                 const theme = f2TeamTheme[driver.teamId] || { color: "#8892a6" };
                 const topTenClass = driver.pos <= 10 ? "driver-row-top10" : "";
                 const podiumClass = driver.pos <= 3 ? `pos-${driver.pos}` : "";
@@ -1239,7 +1239,7 @@
                 `;
             }).join("");
 
-            document.getElementById("constructors-table").innerHTML = F2_TEAMS.map((team, i) => {
+            document.getElementById("constructors-table").innerHTML = [...F2_TEAMS].sort((a, b) => a.pos - b.pos).map((team, i) => {
                 const theme = f2TeamTheme[team.teamId] || { color: "#8892a6" };
                 return `
                     <tr class="constructor-row row-anim" style="--team-main:${theme.color}; animation-delay:${Math.min(i, 14) * 40}ms;">
@@ -1375,11 +1375,11 @@
                 tabBar.classList.remove("grid-cols-4");
                 tabBar.classList.add("grid-cols-3");
                 if (!document.getElementById("tab-live").classList.contains("hidden")) switchTab("standings");
-                document.getElementById("standings-desc").textContent = `Няма безплатен live API за F2 — класирането се поддържа на ръка (${F2_META.source}).`;
+                document.getElementById("standings-desc").textContent = `Автоматична проверка на класирането на всеки 6 часа (${F2_META.source}).`;
                 document.getElementById("teams-desc").textContent = "Съставите и номерата на болидите за сезон 2026.";
                 document.getElementById("th-trend").textContent = "№";
                 refreshBtn.classList.add("hidden");
-                feedBadge.innerHTML = "Ръчни данни";
+                feedBadge.innerHTML = "FIA класиране";
                 feedBadge.className = "inline-flex items-center gap-2 rounded-[6px] border border-sky-500/35 bg-sky-500/10 px-2.5 py-1 text-sky-300";
             } else {
                 liveBtn.classList.remove("hidden");
